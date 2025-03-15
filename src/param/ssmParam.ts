@@ -151,3 +151,42 @@ const putParam: PutParam = async ({ name, value }) => {
 
   return await ssmClient.send(putParamCommand);
 };
+
+type FetchParams = <
+  TSchema extends v.GenericSchema<unknown, { Name: string; Value: unknown }[]>,
+>(params: {
+  names: string[];
+  withDecryption: boolean;
+  schema: TSchema;
+}) => Promise<{
+  [P in v.InferOutput<TSchema>[number] as P["Name"]]: P["Value"];
+}>;
+
+const fetchParams: FetchParams = async ({ names, withDecryption, schema }) => {
+  const getParamsCommand = new GetParametersCommand({
+    Names: names,
+    WithDecryption: withDecryption,
+  });
+
+  const { Parameters: fetchedParams } = await ssmClient.send(getParamsCommand);
+  const parsedParams = v.parse(schema, fetchedParams);
+
+  return parsedParams.reduce(
+    (
+      acc,
+      {
+        Name,
+        Value,
+      }: {
+        Name: (typeof parsedParams)[number]["Name"];
+        Value: (typeof parsedParams)[number]["Value"];
+      },
+    ) => {
+      acc[Name] = Value as {
+        [P in (typeof parsedParams)[number] as P["Name"]]: P["Value"];
+      }[typeof Name];
+      return acc;
+    },
+    {} as { [P in (typeof parsedParams)[number] as P["Name"]]: P["Value"] },
+  );
+};
