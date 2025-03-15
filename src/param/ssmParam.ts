@@ -118,18 +118,16 @@ export const fetchTwitterApiTokens = async () => {
   };
 };
 
-type FetchParamParams = {
-  paramName: string;
+type FetchParam = <
+  TSchema extends v.GenericSchema<unknown, { Value: unknown }>,
+>(params: {
+  name: string;
   withDecryption: boolean;
-  schema: v.BaseSchema<unknown, unknown, v.BaseIssue<unknown>>;
-};
-const fetchParam = async ({
-  paramName,
-  withDecryption,
-  schema,
-}: FetchParamParams) => {
+  schema: TSchema;
+}) => Promise<v.InferOutput<TSchema>["Value"]>;
+const fetchParam: FetchParam = async ({ name, withDecryption, schema }) => {
   const getParamCommand = new GetParameterCommand({
-    Name: paramName,
+    Name: name,
     WithDecryption: withDecryption,
   });
 
@@ -137,6 +135,19 @@ const fetchParam = async ({
 
   const parsedParam = v.parse(schema, fetchedParam);
   return parsedParam.Value;
+};
 
-  return fetchedParam;
+type PutParam = (params: {
+  name: string;
+  value: string;
+}) => void;
+const putParam: PutParam = async ({ name, value }) => {
+  const putParamCommand = new PutParameterCommand({
+    Name: name,
+    Value: value,
+    Type: "String",
+    Overwrite: true,
+  });
+
+  return await ssmClient.send(putParamCommand);
 };
