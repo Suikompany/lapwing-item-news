@@ -7,7 +7,7 @@ const initTwitterClient = async () => {
 
   const baseClient = new TwitterApi({
     appKey: tokens.apiKey,
-    appSecret: tokens.apiKeySecret,
+    appSecret: tokens.apiSecret,
     accessToken: tokens.accessToken,
     accessSecret: tokens.accessTokenSecret,
   });
