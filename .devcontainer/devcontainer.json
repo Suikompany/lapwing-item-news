@@ -1,13 +1,32 @@
 {
-	"name": "TS & Terraform",
-  "build": {
-    "dockerfile": "Dockerfile"
-  },
+	"name": "Node(TS) + Terraform",
+	"build": {
+		"dockerfile": "Dockerfile"
+	},
+
+	"remoteUser": "node",
+
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"biomejs.biome",
+				"YoavBls.pretty-ts-errors",
+				"hashicorp.terraform"
+			]
+		}
+	},
 	"features": {
 		"ghcr.io/devcontainers/features/terraform:1": {
 			"version": "latest",
-			"tflint": "latest"
+			"tflint": "latest",
+			"terragrunt": "latest"
 		}
 	},
-	"remoteUser": "node"
+
+	"remoteEnv": {
+		"AWS_ACCESS_KEY_ID": "${localEnv:AWS_ACCESS_KEY_ID}",
+		"AWS_SECRET_ACCESS_KEY": "${localEnv:AWS_SECRET_ACCESS_KEY}",
+		"AWS_SESSION_TOKEN": "${localEnv:AWS_SESSION_TOKEN}",
+		"AWS_CREDENTIAL_EXPIRATION": "${localEnv:AWS_CREDENTIAL_EXPIRATION}"
+	}
 }
