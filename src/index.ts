@@ -1,7 +1,7 @@
 import type { Handler } from "aws-lambda";
 
 import { scrapeProductList } from "./booth/products";
-import { buildTweetText, sendTweet } from "./twitter/tweet";
+import { createTweet } from "./twitter/twitter";
 import { saveScrapedLog } from "./db/dynamodb";
 
 import { truncateUnderMin } from "./util";
@@ -37,17 +37,16 @@ export const handler: Handler = async (event, context) => {
   // ツイートを作成
   const tweetResultList = await Promise.all(
     newProductList.map(async (product) => {
-      const tweetText = buildTweetText({
+      const result = await createTweet({
         productName: product.name,
         productId: product.id,
         hashtags: [],
         // hashtags: ["#Lapwing"], 試験運用中はタグなし
       });
-      const result = await sendTweet({ text: tweetText });
       return result;
     }),
   );
-  const tweetIdList = tweetResultList.map((result) => result.data.id);
+  const tweetIdList = tweetResultList.map((result) => result.id);
   console.debug("tweetIds:", tweetIdList);
   console.debug("rateLimit:", tweetResultList.at(-1)?.rateLimit);
 
