@@ -10,15 +10,7 @@ import {
   SSMClient,
 } from "@aws-sdk/client-ssm";
 
-// AWS SDK の SSMClient と send メソッドをモック化
-vi.mock("@aws-sdk/client-ssm", async (importActual) => {
-  return {
-    ...(await importActual()),
-    SSMClient: vi.fn().mockReturnValue({
-      send: vi.fn(),
-    }),
-  };
-});
+vi.mock("@aws-sdk/client-ssm");
 
 afterEach(() => {
   vi.clearAllMocks();
