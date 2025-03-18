@@ -1,7 +1,7 @@
 import type { Handler } from "aws-lambda";
 
 import { scrapeProductList } from "./booth/products";
-import { createTweet } from "./twitter/twitter";
+import { createMultipleTweets } from "./twitter/twitter";
 import { saveScrapedLog } from "./db/dynamodb";
 import { fetchLatestProductId, putLatestProductId } from "./param/ssmParam";
 import { truncateUnderMin } from "./util/truncateUnderMin";
@@ -34,20 +34,26 @@ export const handler: Handler = async (event, context) => {
   }
 
   // ツイートを作成
-  const tweetResultList = await Promise.all(
-    newProductList.map(async (product) => {
-      const result = await createTweet({
-        productName: product.name,
-        productId: product.id,
-        hashtags: [],
-        // hashtags: ["#Lapwing"], 試験運用中はタグなし
-      });
-      return result;
-    }),
+  const resultList = await createMultipleTweets(
+    newProductList.map((product) => ({
+      productName: product.name,
+      productId: product.id,
+      hashtags: [],
+      // hashtags: ["#Lapwing"], 試験運用中はタグなし
+    })),
   );
-  const tweetIdList = tweetResultList.map((result) => result.id);
+
+  const tweetIdList = resultList.map((result) => {
+    if (result.type === "success") {
+      return result.id;
+    }
+    return undefined;
+  });
+  const lastRateLimit = resultList.find(
+    (result) => result.type === "success",
+  )?.rateLimit;
   console.debug("tweetIds:", tweetIdList);
-  console.debug("rateLimit:", tweetResultList.at(-1)?.rateLimit);
+  console.debug("rateLimit:", lastRateLimit);
 
   // DB に保存
   const newProductIdList = newProductList.map(({ id }) => id);

@@ -3,7 +3,7 @@ import { handler } from "./index";
 import { scrapeProductList } from "./booth/products";
 import { saveScrapedLog } from "./db/dynamodb";
 import { fetchLatestProductId } from "./param/ssmParam";
-import { createTweet } from "./twitter/twitter";
+import { createMultipleTweets } from "./twitter/twitter";
 
 vi.mock("./param/ssmParam", () => ({
   fetchTwitterApiTokens: vi.fn().mockResolvedValue({
@@ -18,7 +18,7 @@ vi.mock("./param/ssmParam", () => ({
 
 vi.mock("./twitter/twitter", () => ({
   client: vi.fn(),
-  createTweet: vi.fn(),
+  createMultipleTweets: vi.fn(),
 }));
 
 vi.mock("./booth/products", () => ({
@@ -134,72 +134,231 @@ const DUMMY_PRODUCT_LIST = [
 ];
 
 describe("handler", () => {
-  const createTweetMock = vi.mocked(createTweet);
+  const createMultipleTweetsMock = vi.mocked(createMultipleTweets);
   const scrapeProductListMock = vi.mocked(scrapeProductList);
   const fetchLatestProductIdMock = vi.mocked(fetchLatestProductId);
   const saveScrapedLogMock = vi.mocked(saveScrapedLog);
 
   it("found 0 products and exit early", async () => {
-    createTweetMock.mockResolvedValue({
-      id: "123",
-      rateLimit: { reset: 123, limit: 17, remaining: 10 },
-    });
+    createMultipleTweetsMock.mockResolvedValue([
+      {
+        type: "success",
+        id: "123",
+        rateLimit: { reset: 123, limit: 17, remaining: 10 },
+      },
+    ]);
     scrapeProductListMock.mockResolvedValueOnce(DUMMY_PRODUCT_LIST);
     fetchLatestProductIdMock.mockResolvedValueOnce(DUMMY_PRODUCT_LIST[0].id);
 
     const result = await handler({}, DUMMY_CONTEXT, callbackMock);
 
-    expect(createTweetMock).not.toHaveBeenCalled();
+    expect(createMultipleTweetsMock).not.toHaveBeenCalled();
     expect(saveScrapedLogMock).not.toHaveBeenCalled();
     expect(result).toEqual(undefined);
   });
 
   it("found 1 new product and tweets it", async () => {
-    createTweetMock.mockResolvedValue({
-      id: "123",
-      rateLimit: { reset: 123, limit: 17, remaining: 10 },
-    });
+    createMultipleTweetsMock.mockResolvedValueOnce([
+      {
+        type: "success",
+        id: "100001",
+        rateLimit: { reset: 123, limit: 17, remaining: 10 },
+      },
+    ]);
     scrapeProductListMock.mockResolvedValueOnce(DUMMY_PRODUCT_LIST);
     fetchLatestProductIdMock.mockResolvedValueOnce(DUMMY_PRODUCT_LIST[1].id);
 
     const result = await handler({}, DUMMY_CONTEXT, callbackMock);
 
-    expect(createTweetMock).toHaveBeenCalledTimes(1);
+    expect(createMultipleTweetsMock).toHaveBeenCalledTimes(1);
+    expect(createMultipleTweetsMock).toHaveBeenCalledWith([
+      {
+        productName: DUMMY_PRODUCT_LIST[0].name,
+        productId: DUMMY_PRODUCT_LIST[0].id,
+        hashtags: [],
+      },
+    ]);
     expect(saveScrapedLogMock).toHaveBeenCalledOnce();
+    expect(saveScrapedLogMock).toHaveBeenCalledWith(
+      expect.any(Date),
+      [DUMMY_PRODUCT_LIST[0].id],
+      ["100001"],
+    );
     expect(result).toEqual("logStreamName");
   });
 
   it("found 2 new products and tweets them", async () => {
-    createTweetMock.mockResolvedValue({
-      id: "123",
-      rateLimit: { reset: 123, limit: 17, remaining: 10 },
-    });
+    createMultipleTweetsMock.mockResolvedValueOnce([
+      {
+        type: "success",
+        id: "100001",
+        rateLimit: { reset: 123, limit: 17, remaining: 10 },
+      },
+      {
+        type: "success",
+        id: "100002",
+        rateLimit: { reset: 123, limit: 17, remaining: 9 },
+      },
+    ]);
     scrapeProductListMock.mockResolvedValueOnce(DUMMY_PRODUCT_LIST);
     fetchLatestProductIdMock.mockResolvedValueOnce(DUMMY_PRODUCT_LIST[2].id);
 
     const result = await handler({}, DUMMY_CONTEXT, callbackMock);
 
-    expect(createTweetMock).toHaveBeenCalledTimes(2);
+    expect(createMultipleTweetsMock).toHaveBeenCalledOnce();
+    expect(createMultipleTweetsMock).toHaveBeenCalledWith([
+      {
+        productName: DUMMY_PRODUCT_LIST[0].name,
+        productId: DUMMY_PRODUCT_LIST[0].id,
+        hashtags: [],
+      },
+      {
+        productName: DUMMY_PRODUCT_LIST[1].name,
+        productId: DUMMY_PRODUCT_LIST[1].id,
+        hashtags: [],
+      },
+    ]);
     expect(saveScrapedLogMock).toHaveBeenCalledOnce();
+    expect(saveScrapedLogMock).toHaveBeenCalledWith(
+      expect.any(Date),
+      [DUMMY_PRODUCT_LIST[0].id, DUMMY_PRODUCT_LIST[1].id],
+      ["100001", "100002"],
+    );
     expect(result).toEqual("logStreamName");
   });
 
   it("found 10 new products and tweets them", async () => {
-    createTweetMock.mockResolvedValue({
-      id: "123",
-      rateLimit: { reset: 123, limit: 17, remaining: 10 },
-    });
+    createMultipleTweetsMock.mockResolvedValueOnce([
+      {
+        type: "success",
+        id: "100001",
+        rateLimit: { reset: 123, limit: 17, remaining: 10 },
+      },
+      {
+        type: "success",
+        id: "100002",
+        rateLimit: { reset: 123, limit: 17, remaining: 9 },
+      },
+      {
+        type: "success",
+        id: "100003",
+        rateLimit: { reset: 123, limit: 17, remaining: 8 },
+      },
+      {
+        type: "success",
+        id: "100004",
+        rateLimit: { reset: 123, limit: 17, remaining: 7 },
+      },
+      {
+        type: "success",
+        id: "100005",
+        rateLimit: { reset: 123, limit: 17, remaining: 6 },
+      },
+      {
+        type: "success",
+        id: "100006",
+        rateLimit: { reset: 123, limit: 17, remaining: 5 },
+      },
+      {
+        type: "success",
+        id: "100007",
+        rateLimit: { reset: 123, limit: 17, remaining: 4 },
+      },
+      {
+        type: "success",
+        id: "100008",
+        rateLimit: { reset: 123, limit: 17, remaining: 3 },
+      },
+      {
+        type: "success",
+        id: "100009",
+        rateLimit: { reset: 123, limit: 17, remaining: 2 },
+      },
+      {
+        type: "success",
+        id: "100010",
+        rateLimit: { reset: 123, limit: 17, remaining: 1 },
+      },
+    ]);
     scrapeProductListMock.mockResolvedValueOnce(DUMMY_PRODUCT_LIST);
     fetchLatestProductIdMock.mockResolvedValueOnce(DUMMY_PRODUCT_LIST[10].id);
 
     const result = await handler({}, DUMMY_CONTEXT, callbackMock);
 
-    expect(createTweetMock).toHaveBeenCalledTimes(10);
+    expect(createMultipleTweetsMock).toHaveBeenCalledOnce();
+    expect(createMultipleTweetsMock).toHaveBeenCalledWith([
+      {
+        productName: DUMMY_PRODUCT_LIST[0].name,
+        productId: DUMMY_PRODUCT_LIST[0].id,
+        hashtags: [],
+      },
+      {
+        productName: DUMMY_PRODUCT_LIST[1].name,
+        productId: DUMMY_PRODUCT_LIST[1].id,
+        hashtags: [],
+      },
+      {
+        productName: DUMMY_PRODUCT_LIST[2].name,
+        productId: DUMMY_PRODUCT_LIST[2].id,
+        hashtags: [],
+      },
+      {
+        productName: DUMMY_PRODUCT_LIST[3].name,
+        productId: DUMMY_PRODUCT_LIST[3].id,
+        hashtags: [],
+      },
+      {
+        productName: DUMMY_PRODUCT_LIST[4].name,
+        productId: DUMMY_PRODUCT_LIST[4].id,
+        hashtags: [],
+      },
+      {
+        productName: DUMMY_PRODUCT_LIST[5].name,
+        productId: DUMMY_PRODUCT_LIST[5].id,
+        hashtags: [],
+      },
+      {
+        productName: DUMMY_PRODUCT_LIST[6].name,
+        productId: DUMMY_PRODUCT_LIST[6].id,
+        hashtags: [],
+      },
+      {
+        productName: DUMMY_PRODUCT_LIST[7].name,
+        productId: DUMMY_PRODUCT_LIST[7].id,
+        hashtags: [],
+      },
+      {
+        productName: DUMMY_PRODUCT_LIST[8].name,
+        productId: DUMMY_PRODUCT_LIST[8].id,
+        hashtags: [],
+      },
+      {
+        productName: DUMMY_PRODUCT_LIST[9].name,
+        productId: DUMMY_PRODUCT_LIST[9].id,
+        hashtags: [],
+      },
+    ]);
     expect(saveScrapedLogMock).toHaveBeenCalledOnce();
+    expect(saveScrapedLogMock).toHaveBeenCalledWith(
+      expect.any(Date),
+      DUMMY_PRODUCT_LIST.slice(0, 10).map((product) => product.id),
+      [
+        "100001",
+        "100002",
+        "100003",
+        "100004",
+        "100005",
+        "100006",
+        "100007",
+        "100008",
+        "100009",
+        "100010",
+      ],
+    );
     expect(result).toEqual("logStreamName");
   });
 
-  it("should handle errors gracefully", async () => {
+  it("should handle occuring errors when scraping", async () => {
     const error = new Error("Something went wrong");
     scrapeProductListMock.mockRejectedValueOnce(error);
 
@@ -207,7 +366,35 @@ describe("handler", () => {
       "Something went wrong",
     );
 
-    expect(createTweetMock).not.toHaveBeenCalled();
+    expect(createMultipleTweetsMock).not.toHaveBeenCalled();
+    expect(saveScrapedLogMock).not.toHaveBeenCalled();
+  });
+
+  it("should handle occuring errors when fetching latest product id", async () => {
+    const error = new Error("Something went wrong");
+    fetchLatestProductIdMock.mockRejectedValueOnce(error);
+
+    await expect(handler({}, DUMMY_CONTEXT, callbackMock)).rejects.toThrow(
+      "Something went wrong",
+    );
+
+    expect(createMultipleTweetsMock).not.toHaveBeenCalled();
+    expect(saveScrapedLogMock).not.toHaveBeenCalled();
+  });
+
+  it("should handle occuring errors when creating tweet", async () => {
+    createMultipleTweetsMock.mockRejectedValueOnce(
+      new Error("Something went wrong"),
+    );
+    scrapeProductListMock.mockResolvedValueOnce(DUMMY_PRODUCT_LIST);
+    fetchLatestProductIdMock.mockResolvedValueOnce(DUMMY_PRODUCT_LIST[1].id);
+
+    await expect(handler({}, DUMMY_CONTEXT, callbackMock)).rejects.toThrow(
+      "Something went wrong",
+    );
+
+    expect(scrapeProductListMock).toHaveBeenCalledOnce();
+    expect(fetchLatestProductIdMock).toHaveBeenCalledOnce();
     expect(saveScrapedLogMock).not.toHaveBeenCalled();
   });
 });
