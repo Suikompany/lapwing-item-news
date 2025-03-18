@@ -23,8 +23,8 @@ const client = await initTwitterClient();
 
 type CreateMultipleTweets = (
   params: readonly Parameters<CreateTweet>[0][],
-) => Promise<{
-  results: (
+) => Promise<
+  (
     | {
         type: "success";
         id: string;
@@ -33,9 +33,8 @@ type CreateMultipleTweets = (
           | undefined;
       }
     | { type: "error"; error: Error }
-  )[];
-  rateLimit?: { limit: number; remaining: number; reset: number } | undefined;
-}>;
+  )[]
+>;
 export const createMultipleTweets: CreateMultipleTweets = async (params) => {
   const tweetResultList = await Promise.allSettled(
     params.map(async (param) => {
@@ -72,14 +71,7 @@ export const createMultipleTweets: CreateMultipleTweets = async (params) => {
     }
   });
 
-  const rateLimit = results.findLast(
-    (result) => result.type === "success",
-  )?.rateLimit;
-
-  return {
-    results: results,
-    rateLimit: rateLimit,
-  };
+  return results;
 };
 
 type CreateTweet = (params: {

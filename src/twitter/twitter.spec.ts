@@ -45,16 +45,13 @@ describe("createMultipleTweets", () => {
       { text: "Product\n#tag1 #tag2\nhttps://booth.pm/ja/items/1" },
       { fullResponse: true },
     );
-    expect(result).toEqual({
-      results: [
-        {
-          type: "success",
-          id: "123",
-          rateLimit: { limit: 300, remaining: 299, reset: 1633024800 },
-        },
-      ],
-      rateLimit: { limit: 300, remaining: 299, reset: 1633024800 },
-    });
+    expect(result).toEqual([
+      {
+        type: "success",
+        id: "123",
+        rateLimit: { limit: 300, remaining: 299, reset: 1633024800 },
+      },
+    ]);
   });
 
   it("create 2 tweets from createMultipleTweets", async () => {
@@ -108,21 +105,18 @@ describe("createMultipleTweets", () => {
       { text: "Product2\n#tag3 #tag4\nhttps://booth.pm/ja/items/2" },
       { fullResponse: true },
     );
-    expect(result).toEqual({
-      results: [
-        {
-          type: "success",
-          id: "100001",
-          rateLimit: { limit: 300, remaining: 299, reset: 1633024800 },
-        },
-        {
-          type: "success",
-          id: "100002",
-          rateLimit: { limit: 300, remaining: 299, reset: 1633024800 },
-        },
-      ],
-      rateLimit: { limit: 300, remaining: 299, reset: 1633024800 },
-    });
+    expect(result).toEqual([
+      {
+        type: "success",
+        id: "100001",
+        rateLimit: { limit: 300, remaining: 299, reset: 1633024800 },
+      },
+      {
+        type: "success",
+        id: "100002",
+        rateLimit: { limit: 300, remaining: 299, reset: 1633024800 },
+      },
+    ]);
   });
 
   it("create 3 tweets, 2nd is errored from createMultipleTweets", async () => {
@@ -192,25 +186,22 @@ describe("createMultipleTweets", () => {
       { text: "Product3\n#tag3 #tag4\nhttps://booth.pm/ja/items/3" },
       { fullResponse: true },
     );
-    expect(result).toEqual({
-      results: [
-        {
-          type: "success",
-          id: "100001",
-          rateLimit: { limit: 300, remaining: 299, reset: 1633024800 },
-        },
-        {
-          type: "error",
-          error: new Error("Twitter API Response Error: Error message"),
-        },
-        {
-          type: "success",
-          id: "100003",
-          rateLimit: { limit: 300, remaining: 299, reset: 1633024800 },
-        },
-      ],
-      rateLimit: { limit: 300, remaining: 299, reset: 1633024800 },
-    });
+    expect(result).toEqual([
+      {
+        type: "success",
+        id: "100001",
+        rateLimit: { limit: 300, remaining: 299, reset: 1633024800 },
+      },
+      {
+        type: "error",
+        error: new Error("Twitter API Response Error: Error message"),
+      },
+      {
+        type: "success",
+        id: "100003",
+        rateLimit: { limit: 300, remaining: 299, reset: 1633024800 },
+      },
+    ]);
   });
 });
 
