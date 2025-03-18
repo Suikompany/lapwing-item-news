@@ -1,4 +1,4 @@
-import { truncateUnderMin } from "./util";
+import { truncateUnderMin } from "./truncateUnderMin";
 
 describe("truncateUnderMin", () => {
   it("should truncate seconds and milliseconds from a Date object", () => {

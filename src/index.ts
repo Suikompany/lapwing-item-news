@@ -3,9 +3,8 @@ import type { Handler } from "aws-lambda";
 import { scrapeProductList } from "./booth/products";
 import { createTweet } from "./twitter/twitter";
 import { saveScrapedLog } from "./db/dynamodb";
-
-import { truncateUnderMin } from "./util";
 import { fetchLatestProductId, putLatestProductId } from "./param/ssmParam";
+import { truncateUnderMin } from "./util/truncateUnderMin";
 
 export const handler: Handler = async (event, context) => {
   const startScrapedAt = truncateUnderMin(new Date());
