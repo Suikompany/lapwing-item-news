@@ -21,6 +21,67 @@ const initTwitterClient = async () => {
 
 const client = await initTwitterClient();
 
+type CreateMultipleTweets = (
+  params: readonly Parameters<CreateTweet>[0][],
+) => Promise<{
+  results: (
+    | {
+        type: "success";
+        id: string;
+        rateLimit:
+          | { limit: number; remaining: number; reset: number }
+          | undefined;
+      }
+    | { type: "error"; error: Error }
+  )[];
+  rateLimit?: { limit: number; remaining: number; reset: number } | undefined;
+}>;
+export const createMultipleTweets: CreateMultipleTweets = async (params) => {
+  const tweetResultList = await Promise.allSettled(
+    params.map(async (param) => {
+      const result = await createTweet(param);
+      return result;
+    }),
+  );
+
+  const results: (
+    | {
+        type: "success";
+        id: string;
+        rateLimit:
+          | { limit: number; remaining: number; reset: number }
+          | undefined;
+      }
+    | { type: "error"; error: Error }
+  )[] = tweetResultList.map((result) => {
+    switch (result.status) {
+      case "fulfilled": {
+        return {
+          type: "success",
+          id: result.value.id,
+          rateLimit: result.value.rateLimit,
+        };
+      }
+      case "rejected": {
+        return { type: "error", error: result.reason as Error };
+      }
+      default: {
+        const _exhaustiveCheck: never = result;
+        throw new Error("unreachable:", _exhaustiveCheck);
+      }
+    }
+  });
+
+  const rateLimit = results.findLast(
+    (result) => result.type === "success",
+  )?.rateLimit;
+
+  return {
+    results: results,
+    rateLimit: rateLimit,
+  };
+};
+
 type CreateTweet = (params: {
   productName: string;
   productId: number;
