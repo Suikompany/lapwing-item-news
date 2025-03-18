@@ -1,4 +1,4 @@
-import { type ErrorV2, TwitterApi } from "twitter-api-v2";
+import { ApiRequestError, ApiResponseError, TwitterApi } from "twitter-api-v2";
 
 import { createTweet } from "./twitter";
 
@@ -49,34 +49,6 @@ describe("createTweet", () => {
     });
   });
 
-  it("should throw an error if tweet creation fails", async () => {
-    const mockPost = vi.fn().mockResolvedValueOnce({
-      data: {
-        data: undefined,
-        // いずれ正しく作りたい https://github.com/PLhery/node-twitter-api-v2/blob/master/doc/errors.md
-        errors: [
-          {
-            title: "title",
-            detail: "detail",
-            errors: [{ message: "errors[0].message" }],
-            type: "",
-          },
-        ] as ErrorV2[],
-      },
-      rateLimit: undefined,
-    });
-
-    twitterPostMock.mockImplementation(mockPost);
-
-    await expect(
-      createTweet({
-        productName: "Product",
-        productId: 1,
-        hashtags: ["#tag1", "#tag2"],
-      }),
-    ).rejects.toThrow("Failed to create a tweet");
-  });
-
   it("allow empty hashtags", async () => {
     const postMockImpl = vi.fn().mockResolvedValueOnce({
       data: {
@@ -103,5 +75,138 @@ describe("createTweet", () => {
       id: "123",
       rateLimit: { limit: 300, remaining: 299, reset: 1633024800 },
     });
+  });
+
+  // ここからエラーハンドリング系の単体テストを追加
+  it("should handle unknown errors", async () => {
+    const postMockImpl = vi
+      .fn()
+      .mockRejectedValueOnce(new Error("Unknown error occurred"));
+
+    twitterPostMock.mockImplementation(postMockImpl);
+
+    const result = createTweet({
+      productName: "Product",
+      productId: 1,
+      hashtags: ["#tag1", "#tag2"],
+    });
+
+    await expect(result).rejects.toThrow(
+      "An unknown error occurred while sending the tweet.",
+    );
+
+    expect(twitterPostMock).toHaveBeenCalledWith(
+      "tweets",
+      { text: "Product\n#tag1 #tag2\nhttps://booth.pm/ja/items/1" },
+      { fullResponse: true },
+    );
+  });
+
+  it("should handle a request error", async () => {
+    const postMockImpl = vi.fn().mockRejectedValueOnce(
+      new ApiRequestError("Request Error", {
+        error: new Error(),
+        request: {},
+      } as unknown as ConstructorParameters<typeof ApiRequestError>[1]),
+    );
+
+    twitterPostMock.mockImplementation(postMockImpl);
+
+    const result = createTweet({
+      productName: "Product",
+      productId: 1,
+      hashtags: ["#tag1", "#tag2"],
+    });
+
+    await expect(result).rejects.toThrow(
+      "Twitter API Request Error: Request Error",
+    );
+
+    expect(twitterPostMock).toHaveBeenCalledWith(
+      "tweets",
+      { text: "Product\n#tag1 #tag2\nhttps://booth.pm/ja/items/1" },
+      { fullResponse: true },
+    );
+  });
+
+  it("should handle an authentication error", async () => {
+    const postMockImpl = vi.fn().mockRejectedValueOnce(
+      new ApiResponseError("Auth Error", {
+        errors: [{ message: "Error message" }],
+        rateLimit: { limit: 300, remaining: 299, reset: 1633024800 },
+        code: 401,
+      } as unknown as ConstructorParameters<typeof ApiResponseError>[1]),
+    );
+
+    twitterPostMock.mockImplementation(postMockImpl);
+
+    const result = createTweet({
+      productName: "Product",
+      productId: 1,
+      hashtags: ["#tag1", "#tag2"],
+    });
+
+    await expect(result).rejects.toThrow("Twitter API Auth Error: Auth Error");
+
+    expect(twitterPostMock).toHaveBeenCalledWith(
+      "tweets",
+      { text: "Product\n#tag1 #tag2\nhttps://booth.pm/ja/items/1" },
+      { fullResponse: true },
+    );
+  });
+
+  it("should handle a rate limit error", async () => {
+    const postMockImpl = vi.fn().mockRejectedValueOnce(
+      new ApiResponseError("Rate Limit Error", {
+        errors: [{ message: "Error message" }],
+        rateLimit: { limit: 300, remaining: 299, reset: 1633024800 },
+        code: 429,
+      } as unknown as ConstructorParameters<typeof ApiResponseError>[1]),
+    );
+
+    twitterPostMock.mockImplementation(postMockImpl);
+
+    const result = createTweet({
+      productName: "Product",
+      productId: 1,
+      hashtags: ["#tag1", "#tag2"],
+    });
+
+    await expect(result).rejects.toThrow(
+      "Twitter API Rate Limit Error: Rate Limit Error",
+    );
+
+    expect(twitterPostMock).toHaveBeenCalledWith(
+      "tweets",
+      { text: "Product\n#tag1 #tag2\nhttps://booth.pm/ja/items/1" },
+      { fullResponse: true },
+    );
+  });
+
+  it("should handle an unknown response error", async () => {
+    const postMockImpl = vi.fn().mockRejectedValueOnce(
+      new ApiResponseError("Response Error", {
+        errors: [{ message: "Error message" }],
+        rateLimit: { limit: 300, remaining: 299, reset: 1633024800 },
+      } as unknown as ConstructorParameters<typeof ApiResponseError>[1]),
+    );
+
+    twitterPostMock.mockImplementation(postMockImpl);
+
+    const result = createTweet({
+      productName: "Product",
+      productId: 1,
+      hashtags: ["#tag1", "#tag2"],
+    });
+
+    await expect(result).rejects.toThrow(
+      "Twitter API Response Error: Response Error",
+    );
+
+    expect(twitterPostMock).toHaveBeenCalledWith(
+      "tweets",
+      { text: "Product\n#tag1 #tag2\nhttps://booth.pm/ja/items/1" },
+      { fullResponse: true },
+    );
   });
 });

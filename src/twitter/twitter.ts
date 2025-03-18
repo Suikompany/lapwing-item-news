@@ -1,4 +1,4 @@
-import { TwitterApi } from "twitter-api-v2";
+import { ApiRequestError, ApiResponseError, TwitterApi } from "twitter-api-v2";
 import type { SendTweetV2Params, TweetV2PostTweetResult } from "twitter-api-v2";
 
 import { fetchTwitterApiTokens } from "../param/ssmParam";
@@ -82,22 +82,51 @@ const sendTweet: SendTweet = async ({ text }) => {
     text: text,
   };
 
-  const response = await client.post<TweetV2PostTweetResult>(
-    "tweets",
-    payload,
-    {
-      fullResponse: true,
-    },
-  );
+  try {
+    const response = await client.post<TweetV2PostTweetResult>(
+      "tweets",
+      payload,
+      {
+        fullResponse: true,
+      },
+    );
 
-  if (response.data.errors) {
-    throw new Error("Failed to create a tweet", {
-      cause: response.data.errors,
+    return {
+      data: response.data.data,
+      rateLimit: response.rateLimit,
+    };
+  } catch (error: unknown) {
+    // twitter-api-v2 のエラーハンドリング: https://github.com/PLhery/node-twitter-api-v2/blob/master/doc/errors.md
+
+    // リクエストエラー
+    if (error instanceof ApiRequestError) {
+      throw new Error(`Twitter API Request Error: ${error.message}`, {
+        cause: error.requestError,
+      });
+    }
+
+    // レスポンスエラー
+    if (error instanceof ApiResponseError) {
+      if (error.isAuthError) {
+        throw new Error(`Twitter API Auth Error: ${error.message}`, {
+          cause: error.errors,
+        });
+      }
+
+      if (error.rateLimitError) {
+        throw new Error(`Twitter API Rate Limit Error: ${error.message}`, {
+          cause: error.errors,
+        });
+      }
+
+      throw new Error(`Twitter API Response Error: ${error.message}`, {
+        cause: error.errors,
+      });
+    }
+
+    // 不明なエラー
+    throw new Error("An unknown error occurred while sending the tweet.", {
+      cause: error,
     });
   }
-
-  return {
-    data: response.data.data,
-    rateLimit: response.rateLimit,
-  };
 };
