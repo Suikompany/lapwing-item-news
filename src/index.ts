@@ -9,7 +9,7 @@ import { truncateUnderMin } from "./util/truncateUnderMin";
 export const handler: Handler = async (event, context) => {
   const startScrapedAt = truncateUnderMin(new Date());
 
-  // 商品一覧を取得
+  // 商品一覧（最新が1番目）を取得
   const productList = await scrapeProductList();
 
   // 前回スクレイピング時の最新商品 ID を取得
@@ -33,27 +33,27 @@ export const handler: Handler = async (event, context) => {
     await putLatestProductId(newProductList[0].id);
   }
 
-  // ツイートを作成
-  const resultList = await createMultipleTweets(
-    newProductList.map((product) => ({
-      productName: product.name,
-      productId: product.id,
-      hashtags: [],
-      // hashtags: ["#Lapwing"], 試験運用中はタグなし
-    })),
-  );
+  // 時系列通りにツイートするため、公開日時の昇順にしたパラメータを作成
+  const tweetParams = newProductList.toReversed().map((product) => ({
+    productName: product.name,
+    productId: product.id,
+    hashtags: [],
+    // hashtags: ["#Lapwing"], 試験運用中はタグなし
+  }));
+  const tweetResultList = await createMultipleTweets(tweetParams);
+  const latestRateLimit = tweetResultList.findLast(
+    (result) => result.type === "success",
+  )?.rateLimit;
+  console.debug("rateLimit:", latestRateLimit);
 
-  const tweetIdList = resultList.map((result) => {
+  // 公開日時が降順の newProductIdList に併せて tweetIdList も降順にする
+  const tweetIdList = tweetResultList.toReversed().map((result) => {
     if (result.type === "success") {
       return result.id;
     }
     return undefined;
   });
-  const lastRateLimit = resultList.find(
-    (result) => result.type === "success",
-  )?.rateLimit;
   console.debug("tweetIds:", tweetIdList);
-  console.debug("rateLimit:", lastRateLimit);
 
   // DB に保存
   const newProductIdList = newProductList.map(({ id }) => id);
