@@ -11,4 +11,7 @@ await build({
   banner: {
     js: "import{createRequire}from'module';const require=createRequire(import.meta.url);",
   },
+  define: {
+    'import.meta.vitest': 'undefined',
+  },
 });
