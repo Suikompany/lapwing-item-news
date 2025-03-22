@@ -58,77 +58,78 @@ const DUMMY_CONTEXT = {
 };
 const callbackMock = vi.fn();
 
+/** 公開日時の降順（つまりIDも降順） */
 const DUMMY_PRODUCT_LIST = [
   {
-    id: 6707008,
+    id: 6670110,
     name: "【13アバター対応】Fantasy Youth Mouton【VRChat向け衣装モデル】",
   },
   {
-    id: 6706007,
+    id: 6670109,
     name: "【複数アバター対応 3D衣装】マジカルノリヤ / MAGICALNORIYA",
   },
   {
-    id: 6705006,
+    id: 6670108,
     name: "シュガーヘア 【 2種セット / 髪型 / アップヘア 】 ヘアアクセサリー付き Sugar Hair",
   },
   {
-    id: 6704005,
+    id: 6670107,
     name: "【3D】Mystic Bloke (森羅/しなの/愛莉/マヌカ/ラシューシャ/萌/桔梗/Lapwing/セレスティア/Sio/水瀬/狛乃対応) #LAYON服 ＃LAYONコーデ",
   },
   {
-    id: 6703004,
+    id: 6670106,
     name: "キューティショート 【 髪型 / ヘア 】 Cutie Short Hair",
   },
   {
-    id: 6702003,
+    id: 6670105,
     name: "【15アバター対応】MagicMaid【VRChat】",
   },
   {
-    id: 6701002,
+    id: 6670104,
     name: "Twist Bun Hair",
   },
   {
-    id: 6700001,
+    id: 6670103,
     name: "2024年第2弾『エレガントメイド』Elegant Maid 💜",
   },
   {
-    id: 6699000,
+    id: 6670102,
     name: "Curly Short Cut",
   },
   {
-    id: 6698009,
+    id: 6670101,
     name: "【Nail&Ring】STARDROPS-もっと、近くへ-【27アバター対応】 #STARDROPLAND",
   },
   {
-    id: 6697008,
+    id: 6670100,
     name: "320アバター対応【光る】NebulaTexture【導入ガイド付き】",
   },
   {
-    id: 6696007,
+    id: 6670099,
     name: "四つ葉のピン【VRChat対応】",
   },
   {
-    id: 6695006,
+    id: 6670098,
     name: "[Lapwing] Phoenix_Ears",
   },
   {
-    id: 6694005,
+    id: 6670097,
     name: "【Lapwing対応】ミラージュアイテクスチャ",
   },
   {
-    id: 6693004,
+    id: 6670096,
     name: "【セール中】Lunar Glasses【VRChat用サングラス】",
   },
   {
-    id: 6692003,
+    id: 6670095,
     name: "洋風の羽織【期間限定】",
   },
   {
-    id: 6691002,
+    id: 6670094,
     name: "Starlight Eye Texture【glow eyes】",
   },
   {
-    id: 6690001,
+    id: 6670093,
     name: "【VRChat対応】CosmicNightヘアスタイル【MA対応】",
   },
 ];
@@ -208,13 +209,13 @@ describe("handler", () => {
     expect(createMultipleTweetsMock).toHaveBeenCalledOnce();
     expect(createMultipleTweetsMock).toHaveBeenCalledWith([
       {
-        productName: DUMMY_PRODUCT_LIST[0].name,
-        productId: DUMMY_PRODUCT_LIST[0].id,
+        productName: DUMMY_PRODUCT_LIST[1].name,
+        productId: DUMMY_PRODUCT_LIST[1].id,
         hashtags: [],
       },
       {
-        productName: DUMMY_PRODUCT_LIST[1].name,
-        productId: DUMMY_PRODUCT_LIST[1].id,
+        productName: DUMMY_PRODUCT_LIST[0].name,
+        productId: DUMMY_PRODUCT_LIST[0].id,
         hashtags: [],
       },
     ]);
@@ -222,7 +223,7 @@ describe("handler", () => {
     expect(saveScrapedLogMock).toHaveBeenCalledWith(
       expect.any(Date),
       [DUMMY_PRODUCT_LIST[0].id, DUMMY_PRODUCT_LIST[1].id],
-      ["100001", "100002"],
+      ["100002", "100001"],
     );
     expect(result).toEqual("logStreamName");
   });
@@ -288,43 +289,8 @@ describe("handler", () => {
     expect(createMultipleTweetsMock).toHaveBeenCalledOnce();
     expect(createMultipleTweetsMock).toHaveBeenCalledWith([
       {
-        productName: DUMMY_PRODUCT_LIST[0].name,
-        productId: DUMMY_PRODUCT_LIST[0].id,
-        hashtags: [],
-      },
-      {
-        productName: DUMMY_PRODUCT_LIST[1].name,
-        productId: DUMMY_PRODUCT_LIST[1].id,
-        hashtags: [],
-      },
-      {
-        productName: DUMMY_PRODUCT_LIST[2].name,
-        productId: DUMMY_PRODUCT_LIST[2].id,
-        hashtags: [],
-      },
-      {
-        productName: DUMMY_PRODUCT_LIST[3].name,
-        productId: DUMMY_PRODUCT_LIST[3].id,
-        hashtags: [],
-      },
-      {
-        productName: DUMMY_PRODUCT_LIST[4].name,
-        productId: DUMMY_PRODUCT_LIST[4].id,
-        hashtags: [],
-      },
-      {
-        productName: DUMMY_PRODUCT_LIST[5].name,
-        productId: DUMMY_PRODUCT_LIST[5].id,
-        hashtags: [],
-      },
-      {
-        productName: DUMMY_PRODUCT_LIST[6].name,
-        productId: DUMMY_PRODUCT_LIST[6].id,
-        hashtags: [],
-      },
-      {
-        productName: DUMMY_PRODUCT_LIST[7].name,
-        productId: DUMMY_PRODUCT_LIST[7].id,
+        productName: DUMMY_PRODUCT_LIST[9].name,
+        productId: DUMMY_PRODUCT_LIST[9].id,
         hashtags: [],
       },
       {
@@ -333,8 +299,43 @@ describe("handler", () => {
         hashtags: [],
       },
       {
-        productName: DUMMY_PRODUCT_LIST[9].name,
-        productId: DUMMY_PRODUCT_LIST[9].id,
+        productName: DUMMY_PRODUCT_LIST[7].name,
+        productId: DUMMY_PRODUCT_LIST[7].id,
+        hashtags: [],
+      },
+      {
+        productName: DUMMY_PRODUCT_LIST[6].name,
+        productId: DUMMY_PRODUCT_LIST[6].id,
+        hashtags: [],
+      },
+      {
+        productName: DUMMY_PRODUCT_LIST[5].name,
+        productId: DUMMY_PRODUCT_LIST[5].id,
+        hashtags: [],
+      },
+      {
+        productName: DUMMY_PRODUCT_LIST[4].name,
+        productId: DUMMY_PRODUCT_LIST[4].id,
+        hashtags: [],
+      },
+      {
+        productName: DUMMY_PRODUCT_LIST[3].name,
+        productId: DUMMY_PRODUCT_LIST[3].id,
+        hashtags: [],
+      },
+      {
+        productName: DUMMY_PRODUCT_LIST[2].name,
+        productId: DUMMY_PRODUCT_LIST[2].id,
+        hashtags: [],
+      },
+      {
+        productName: DUMMY_PRODUCT_LIST[1].name,
+        productId: DUMMY_PRODUCT_LIST[1].id,
+        hashtags: [],
+      },
+      {
+        productName: DUMMY_PRODUCT_LIST[0].name,
+        productId: DUMMY_PRODUCT_LIST[0].id,
         hashtags: [],
       },
     ]);
@@ -343,16 +344,16 @@ describe("handler", () => {
       expect.any(Date),
       DUMMY_PRODUCT_LIST.slice(0, 10).map((product) => product.id),
       [
-        "100001",
-        "100002",
-        "100003",
-        "100004",
-        "100005",
-        "100006",
-        "100007",
-        "100008",
-        "100009",
         "100010",
+        "100009",
+        "100008",
+        "100007",
+        "100006",
+        "100005",
+        "100004",
+        "100003",
+        "100002",
+        "100001",
       ],
     );
     expect(result).toEqual("logStreamName");
