@@ -1,15 +1,25 @@
 import { parse } from "node-html-parser";
 
-const buildProductListUrl = (
-  category: string,
-  queryParams?: { [x: string]: string },
-) => {
+const PRODUCT_LIST_PATH = "https://booth.pm/ja/browse" as const;
+const PRODUCT_PATH = "https://booth.pm/ja/items" as const;
+
+type BuildProductListUrl = <TCategory extends string>(params: {
+  category: TCategory;
+  queryParams: { [x: string]: string };
+}) => `${typeof PRODUCT_LIST_PATH}/${(typeof params)["category"]}?${string}`;
+const buildProductListUrl: BuildProductListUrl = ({
+  category,
+  queryParams,
+}) => {
   const queryString = new URLSearchParams(queryParams);
-  return `https://booth.pm/ja/browse/${category}?${queryString}` as const;
+  return `${PRODUCT_LIST_PATH}/${category}?${queryString}` as const;
 };
 
-export const buildProductUrl = (productId: number) => {
-  return `https://booth.pm/ja/items/${productId}`;
+type BuildProductUrl = <TProductId extends number>(params: {
+  productId: TProductId;
+}) => `${typeof PRODUCT_PATH}/${TProductId}`;
+export const buildProductUrl: BuildProductUrl = ({ productId }) => {
+  return `${PRODUCT_PATH}/${productId}`;
 };
 
 // product_id は data-product-id 属性から取得できる。
@@ -19,9 +29,12 @@ export const buildProductUrl = (productId: number) => {
 // a タグには data-tracking="click_item" という属性が付与されているため、ここからも取得可能。
 // 商品は公開日時で降順
 export const scrapeProductList = async () => {
-  const url = buildProductListUrl("3Dモデル", {
-    sort: "new",
-    q: "Lapwing",
+  const url = buildProductListUrl({
+    category: "3Dモデル",
+    queryParams: {
+      sort: "new",
+      q: "Lapwing",
+    },
   });
   const res = await fetch(url, {
     method: "GET",

@@ -110,7 +110,7 @@ const buildTweetText: BuildTweetText = ({
 }) => {
   const productNameLine = productName;
   const hashtagsLine = hashtags.join(" ");
-  const urlLine = buildProductUrl(productId);
+  const urlLine = buildProductUrl({ productId: productId });
 
   return `${productNameLine}\n${hashtagsLine}\n${urlLine}` as const;
 };
