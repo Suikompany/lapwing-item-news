@@ -15,13 +15,6 @@
 			]
 		}
 	},
-	"features": {
-		"ghcr.io/devcontainers/features/terraform:1": {
-			"version": "latest",
-			"tflint": "latest",
-			"terragrunt": "latest"
-		}
-	},
 
 	"remoteEnv": {
 		"AWS_ACCESS_KEY_ID": "${localEnv:AWS_ACCESS_KEY_ID}",
