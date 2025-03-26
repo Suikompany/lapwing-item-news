@@ -1,18 +1,25 @@
 import { parse } from "node-html-parser";
 
-const PRODUCT_LIST_PATH = "https://booth.pm/ja/browse" as const;
+const BROWSE_PRODUCTS_PATH = "https://booth.pm/ja/browse" as const;
+const SEARCH_PRODUCTS_PATH = "https://booth.pm/ja/search" as const;
 const PRODUCT_PATH = "https://booth.pm/ja/items" as const;
 
-type BuildProductListUrl = <TCategory extends string>(params: {
+type BuildBrowseUrl = <TCategory extends string>(params: {
   category: TCategory;
   queryParams: { [x: string]: string };
-}) => `${typeof PRODUCT_LIST_PATH}/${(typeof params)["category"]}?${string}`;
-const buildProductListUrl: BuildProductListUrl = ({
-  category,
-  queryParams,
-}) => {
+}) => `${typeof BROWSE_PRODUCTS_PATH}/${(typeof params)["category"]}?${string}`;
+const buildBrowseUrl: BuildBrowseUrl = ({ category, queryParams }) => {
   const queryString = new URLSearchParams(queryParams);
-  return `${PRODUCT_LIST_PATH}/${category}?${queryString}` as const;
+  return `${BROWSE_PRODUCTS_PATH}/${category}?${queryString}` as const;
+};
+
+type BuildSearchUrl = <TKeyword extends string>(params: {
+  keyword: TKeyword;
+  queryParams: { [x: string]: string };
+}) => `${typeof SEARCH_PRODUCTS_PATH}/${(typeof params)["keyword"]}?${string}`;
+const buildSearchUrl: BuildSearchUrl = ({ keyword, queryParams }) => {
+  const queryString = new URLSearchParams(queryParams);
+  return `${SEARCH_PRODUCTS_PATH}/${keyword}?${queryString}` as const;
 };
 
 type BuildProductUrl = <TProductId extends number>(params: {
@@ -29,11 +36,10 @@ export const buildProductUrl: BuildProductUrl = ({ productId }) => {
 // a タグには data-tracking="click_item" という属性が付与されているため、ここからも取得可能。
 // 商品は公開日時で降順
 export const scrapeProductList = async () => {
-  const url = buildProductListUrl({
-    category: "3Dモデル",
+  const url = buildSearchUrl({
+    keyword: "Lapwing",
     queryParams: {
       sort: "new",
-      q: "Lapwing",
     },
   });
   const res = await fetch(url, {
