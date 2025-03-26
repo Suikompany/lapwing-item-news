@@ -55,7 +55,6 @@ locals {
   base_product_id = 6683896
 
   ssm_param = {
-    latest_scraped_at = "/LapNewItemScrapedLog/LatestScrapedAt"
     latest_product_id = "/LapNewItemScrapedLog/LatestProductId"
     twitter = {
       access_token        = "/LapNewItemScrapedLog/Twitter/AccessToken"

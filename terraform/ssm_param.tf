@@ -23,19 +23,6 @@ variable "twitter_access_token_secret" {
   ephemeral = true
 }
 
-resource "aws_ssm_parameter" "latest_scraped_at" {
-  name           = local.ssm_param.latest_scraped_at
-  type           = "String"
-  insecure_value = local.base_scraped_at
-
-  lifecycle {
-    ignore_changes = [
-      insecure_value
-    ]
-  }
-
-}
-
 resource "aws_ssm_parameter" "latest_product_id" {
   name           = local.ssm_param.latest_product_id
   type           = "String"

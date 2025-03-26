@@ -1,8 +1,4 @@
-import {
-  fetchLatestProductId,
-  fetchLatestScrapedAt,
-  fetchTwitterApiTokens,
-} from "./ssmParam";
+import { fetchLatestProductId, fetchTwitterApiTokens } from "./ssmParam";
 
 import {
   GetParameterCommand,
@@ -75,55 +71,6 @@ describe("fetchLatestProductId", () => {
     ssmSendMock.mockImplementation(sendMockFn);
 
     await expect(fetchLatestProductId()).rejects.toThrowError(
-      "Invalid type: Expected Object but received undefined",
-    );
-  });
-});
-
-describe("fetchLatestScrapedAt", () => {
-  const PARAM_NAME = "/LapNewItemScrapedLog/LatestScrapedAt" as const;
-  const ssmClient = new SSMClient();
-  const ssmSendMock = vi.mocked(ssmClient.send);
-
-  it("fetch valid ISO timestamp", async () => {
-    const sendMockFn = vi.fn().mockResolvedValueOnce({
-      Parameter: {
-        Name: PARAM_NAME,
-        Value: "2023-10-01T12:34:56.789Z",
-      },
-    });
-
-    ssmSendMock.mockImplementation(sendMockFn);
-
-    const result = await fetchLatestScrapedAt();
-
-    expect(result).toEqual(new Date("2023-10-01T12:34:56.789Z"));
-    expect(ssmSendMock).toHaveBeenCalledWith(expect.any(GetParameterCommand));
-  });
-
-  it("fetch invalid ISO timestamp", async () => {
-    const sendMockFn = vi.fn().mockResolvedValueOnce({
-      Parameter: {
-        Name: PARAM_NAME,
-        Value: "invalid-timestamp",
-      },
-    });
-
-    ssmSendMock.mockImplementation(sendMockFn);
-
-    await expect(fetchLatestScrapedAt()).rejects.toThrowError(
-      'Invalid timestamp: Received "invalid-timestamp"',
-    );
-  });
-
-  it("fetch non-existence parameter", async () => {
-    const sendMockFn = vi.fn().mockResolvedValueOnce({
-      Parameter: undefined,
-    });
-
-    ssmSendMock.mockImplementation(sendMockFn);
-
-    await expect(fetchLatestScrapedAt()).rejects.toThrowError(
       "Invalid type: Expected Object but received undefined",
     );
   });

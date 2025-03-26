@@ -70,7 +70,6 @@ resource "aws_iam_policy" "lambda_policy" {
           "ssm:GetParameter"
         ],
         Resource = [
-          aws_ssm_parameter.latest_scraped_at.arn,
           aws_ssm_parameter.latest_product_id.arn
         ]
       },

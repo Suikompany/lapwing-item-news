@@ -6,23 +6,12 @@ import {
   PutParameterCommand,
 } from "@aws-sdk/client-ssm";
 
-const LATEST_SCRAPED_AT_NAME = "/LapNewItemScrapedLog/LatestScrapedAt";
 const LATEST_PRODUCT_ID_NAME = "/LapNewItemScrapedLog/LatestProductId";
 const TWITTER_TOKEN_PATH = "/LapNewItemScrapedLog/Twitter";
 const TWITTER_ACCESS_TOKEN_NAME = `${TWITTER_TOKEN_PATH}/AccessToken`;
 const TWITTER_ACCESS_TOKEN_SECRET_NAME = `${TWITTER_TOKEN_PATH}/AccessTokenSecret`;
 const TWITTER_API_KEY_NAME = `${TWITTER_TOKEN_PATH}/ApiKey`;
 const TWITTER_API_SECRET_NAME = `${TWITTER_TOKEN_PATH}/ApiSecret`;
-
-const latestScrapedAtSchema = v.object({
-  Name: v.literal(LATEST_SCRAPED_AT_NAME),
-  Value: v.pipe(
-    v.string(),
-    v.isoTimestamp(),
-    v.transform((input) => new Date(input)),
-    v.date(),
-  ),
-});
 
 const latestProductIdSchema = v.object({
   Name: v.literal(LATEST_PRODUCT_ID_NAME),
@@ -61,19 +50,6 @@ export const putLatestProductId = (productId: number) =>
   putParam({
     name: LATEST_PRODUCT_ID_NAME,
     value: productId.toString(),
-  });
-
-export const fetchLatestScrapedAt = () =>
-  fetchParam({
-    name: LATEST_SCRAPED_AT_NAME,
-    withDecryption: false,
-    schema: latestScrapedAtSchema,
-  });
-
-export const putLatestScrapedAt = (scrapedAt: Date) =>
-  putParam({
-    name: LATEST_SCRAPED_AT_NAME,
-    value: scrapedAt.toISOString(),
   });
 
 export const fetchTwitterApiTokens = async () => {
