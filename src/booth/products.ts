@@ -4,6 +4,13 @@ const BROWSE_PRODUCTS_PATH = "https://booth.pm/ja/browse" as const;
 const SEARCH_PRODUCTS_PATH = "https://booth.pm/ja/search" as const;
 const PRODUCT_PATH = "https://booth.pm/ja/items" as const;
 
+/** 必要になったら増やす */
+type SearchQueryParams = {
+  sort?: "new";
+  "except_words[]"?: string[];
+  page?: `${number}`;
+};
+
 type BuildBrowseUrl = <TCategory extends string>(params: {
   category: TCategory;
   queryParams: { [x: string]: string };
@@ -15,7 +22,7 @@ const buildBrowseUrl: BuildBrowseUrl = ({ category, queryParams }) => {
 
 type BuildSearchUrl = <TKeyword extends string>(params: {
   keyword: TKeyword;
-  queryParams: { [x: string]: string };
+  queryParams: SearchQueryParams;
 }) => `${typeof SEARCH_PRODUCTS_PATH}/${(typeof params)["keyword"]}?${string}`;
 const buildSearchUrl: BuildSearchUrl = ({ keyword, queryParams }) => {
   const queryString = new URLSearchParams(queryParams);
