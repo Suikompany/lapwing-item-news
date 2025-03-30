@@ -1,4 +1,5 @@
 import { parse } from "node-html-parser";
+import { buildURLSearchParams } from "../util/buildSearchParams";
 
 const BROWSE_PRODUCTS_PATH = "https://booth.pm/ja/browse" as const;
 const SEARCH_PRODUCTS_PATH = "https://booth.pm/ja/search" as const;
@@ -16,7 +17,7 @@ type BuildBrowseUrl = <TCategory extends string>(params: {
   queryParams: { [x: string]: string };
 }) => `${typeof BROWSE_PRODUCTS_PATH}/${(typeof params)["category"]}?${string}`;
 const buildBrowseUrl: BuildBrowseUrl = ({ category, queryParams }) => {
-  const queryString = new URLSearchParams(queryParams);
+  const queryString = buildURLSearchParams(queryParams);
   return `${BROWSE_PRODUCTS_PATH}/${category}?${queryString}` as const;
 };
 
@@ -25,7 +26,7 @@ type BuildSearchUrl = <TKeyword extends string>(params: {
   queryParams: SearchQueryParams;
 }) => `${typeof SEARCH_PRODUCTS_PATH}/${(typeof params)["keyword"]}?${string}`;
 const buildSearchUrl: BuildSearchUrl = ({ keyword, queryParams }) => {
-  const queryString = new URLSearchParams(queryParams);
+  const queryString = buildURLSearchParams(queryParams);
   return `${SEARCH_PRODUCTS_PATH}/${keyword}?${queryString}` as const;
 };
 
