@@ -17,13 +17,13 @@ export const handler: Handler = async (event, context) => {
 
   // 前回の最新商品 ID を取得
   const prevLatestProductId = await fetchLatestProductId();
-  console.debug("latestProductId:", prevLatestProductId);
+  console.debug("prevLatestProductId:", prevLatestProductId);
 
   // 今回の一覧にある前回の最新商品のインデックスを求める
   const indexOfPrevLatestProductId = productList.findIndex(
     (product) => product.id === prevLatestProductId,
   );
-  console.debug("latestInPrevProductIdIndex:", indexOfPrevLatestProductId);
+  console.debug("indexOfPrevLatestProductId:", indexOfPrevLatestProductId);
 
   // 前回の最新商品が見つからなかった場合は早期終了
   if (indexOfPrevLatestProductId === -1) {
