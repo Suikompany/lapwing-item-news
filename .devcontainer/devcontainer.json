@@ -9,11 +9,11 @@
 	"customizations": {
 		"vscode": {
 			"extensions": [
+				"-dbaeumer.vscode-eslint",
 				"biomejs.biome",
 				"YoavBls.pretty-ts-errors",
 				"hashicorp.terraform",
-				// ESLint は除外する https://code.visualstudio.com/docs/devcontainers/containers#_opt-out-of-extensions
-				"-dbaeumer.vscode-eslint"
+				"vitest.explorer"
 			],
 			"settings": {
 				"typescript.tsdk": "node_modules/typescript/lib",
