@@ -11,8 +11,14 @@
 			"extensions": [
 				"biomejs.biome",
 				"YoavBls.pretty-ts-errors",
-				"hashicorp.terraform"
-			]
+				"hashicorp.terraform",
+				// ESLint は除外する https://code.visualstudio.com/docs/devcontainers/containers#_opt-out-of-extensions
+				"-dbaeumer.vscode-eslint"
+			],
+			"settings": {
+				"typescript.tsdk": "node_modules/typescript/lib",
+				"editor.defaultFormatter": "biomejs.biome"
+			}
 		}
 	},
 
