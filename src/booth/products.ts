@@ -48,6 +48,7 @@ export const scrapeProductList = async () => {
     keyword: "Lapwing",
     queryParams: {
       sort: "new",
+      "except_words[]": ["3D環境・ワールド"],
     },
   });
   const res = await fetch(url, {
