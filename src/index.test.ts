@@ -58,7 +58,7 @@ const DUMMY_CONTEXT = {
 };
 const callbackMock = vi.fn();
 
-/** 公開日時の降順（つまりIDも降順） */
+/** 公開日時の降順（IDが降順とは限らない） */
 const DUMMY_PRODUCT_LIST = [
   {
     id: 6670110,
@@ -97,7 +97,7 @@ const DUMMY_PRODUCT_LIST = [
     name: "Curly Short Cut",
   },
   {
-    id: 6670101,
+    id: 6680101, // ID降順とは限らない
     name: "【Nail&Ring】STARDROPS-もっと、近くへ-【27アバター対応】 #STARDROPLAND",
   },
   {
