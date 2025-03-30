@@ -9,28 +9,34 @@ import { truncateUnderMin } from "./util/truncateUnderMin";
 export const handler: Handler = async (event, context) => {
   const startScrapedAt = truncateUnderMin(new Date());
 
-  // 商品一覧（最新が1番目）を取得
+  // 今回の商品一覧（最新が1番目）を取得
   const productList = await scrapeProductList();
 
-  // 前回スクレイピング時の最新商品 ID を取得
-  const latestProductId = await fetchLatestProductId();
-  console.debug("latestProductId:", latestProductId);
+  // 今回の最新商品 ID を保存
+  await putLatestProductId(productList[0].id);
 
-  // 前回のを差し引いて新しい商品のみ求める
-  const latestInPrevProductIdIndex = productList.findIndex(
-    (product) => product.id === latestProductId,
+  // 前回の最新商品 ID を取得
+  const prevLatestProductId = await fetchLatestProductId();
+  console.debug("latestProductId:", prevLatestProductId);
+
+  // 今回の一覧にある前回の最新商品のインデックスを求める
+  const indexOfPrevLatestProductId = productList.findIndex(
+    (product) => product.id === prevLatestProductId,
   );
-  const newProductList = productList.slice(0, latestInPrevProductIdIndex);
-  console.debug("newProducts:", newProductList);
+  console.debug("latestInPrevProductIdIndex:", indexOfPrevLatestProductId);
 
-  // 新しい商品がない場合は早期終了
-  if (newProductList.length < 1) {
+  // 前回の最新商品が見つからなかった場合は早期終了
+  if (indexOfPrevLatestProductId === -1) {
     return;
   }
-  // biome-ignore lint/style/noUselessElse: <1の条件が削除された場合、早期リターンが削除されるため
-  else {
-    // 最新の商品 ID を保存
-    await putLatestProductId(newProductList[0].id);
+
+  // 今回新たに見つかった商品一覧を求める
+  const newProductList = productList.slice(0, indexOfPrevLatestProductId);
+  console.debug("newProducts:", newProductList);
+
+  // 新しい商品が一つもない場合は早期終了
+  if (newProductList.length < 1) {
+    return;
   }
 
   // 時系列通りにツイートするため、公開日時の昇順にしたパラメータを作成

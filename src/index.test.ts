@@ -2,7 +2,7 @@ import { handler } from "./index";
 
 import { scrapeProductList } from "./booth/products";
 import { saveScrapedLog } from "./db/dynamodb";
-import { fetchLatestProductId } from "./param/ssmParam";
+import { fetchLatestProductId, putLatestProductId } from "./param/ssmParam";
 import { createMultipleTweets } from "./twitter/twitter";
 
 vi.mock("./param/ssmParam", () => ({
@@ -138,6 +138,7 @@ describe("handler", () => {
   const createMultipleTweetsMock = vi.mocked(createMultipleTweets);
   const scrapeProductListMock = vi.mocked(scrapeProductList);
   const fetchLatestProductIdMock = vi.mocked(fetchLatestProductId);
+  const putLatestProductIdMock = vi.mocked(putLatestProductId);
   const saveScrapedLogMock = vi.mocked(saveScrapedLog);
 
   it("found 0 products and exit early", async () => {
@@ -357,6 +358,26 @@ describe("handler", () => {
       ],
     );
     expect(result).toEqual("logStreamName");
+  });
+
+  it("should exit early where the previous latest product ID is not found in the current product list", async () => {
+    fetchLatestProductIdMock.mockResolvedValueOnce(999999); // 存在しないIDを返す
+
+    // 現在取得した商品一覧
+    scrapeProductListMock.mockResolvedValueOnce([
+      { id: 100001, name: "Product 1" },
+      { id: 100002, name: "Product 2" },
+    ]);
+
+    // ハンドラーを実行
+    const result = await handler({}, DUMMY_CONTEXT, callbackMock);
+
+    // 最新の商品IDを保存する関数が呼び出されていることを確認
+    expect(putLatestProductIdMock).toHaveBeenCalledExactlyOnceWith(100001);
+
+    // 他は呼び出されていないことを確認
+    expect(createMultipleTweetsMock).not.toHaveBeenCalled();
+    expect(saveScrapedLogMock).not.toHaveBeenCalled();
   });
 
   it("should handle occuring errors when scraping", async () => {
