@@ -12,9 +12,6 @@ export const handler: Handler = async (event, context) => {
   // 今回の商品一覧（最新が1番目）を取得
   const productList = await scrapeProductList();
 
-  // 今回の最新商品 ID を保存
-  await putLatestProductId(productList[0].id);
-
   // 前回の最新商品 ID を取得
   const prevLatestProductId = await fetchLatestProductId();
   console.debug("prevLatestProductId:", prevLatestProductId);
@@ -24,6 +21,14 @@ export const handler: Handler = async (event, context) => {
     (product) => product.id === prevLatestProductId,
   );
   console.debug("indexOfPrevLatestProductId:", indexOfPrevLatestProductId);
+
+  // 今回の最新商品 ID が前回の最新商品 ID と同じ場合はパラメータ更新前に早期終了
+  if (indexOfPrevLatestProductId === 0) {
+    return;
+  }
+
+  // 今回の最新商品 ID でパラメータを更新
+  await putLatestProductId(productList[0].id);
 
   // 前回の最新商品が見つからなかった場合は早期終了
   if (indexOfPrevLatestProductId === -1) {

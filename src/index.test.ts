@@ -360,6 +360,33 @@ describe("handler", () => {
     expect(result).toEqual("logStreamName");
   });
 
+  it("should exit before update the  'latest product ID' param if the fetched latest product ID is the same as the previous one", async () => {
+    const prevLatestProductId = 100001;
+    fetchLatestProductIdMock.mockResolvedValueOnce(prevLatestProductId);
+
+    // 現在の商品リスト
+    const productList = [
+      { id: 100001, name: "Product 1" }, // 最新の商品（前回と同じ）
+      { id: 100002, name: "Product 2" },
+    ];
+    scrapeProductListMock.mockResolvedValueOnce(productList);
+
+    // ハンドラーを実行
+    const result = await handler({}, DUMMY_CONTEXT, callbackMock);
+
+    // 最新商品IDの更新が呼び出されないことを確認
+    expect(putLatestProductIdMock).not.toHaveBeenCalled();
+
+    // ツイート作成関数が呼び出されないことを確認
+    expect(createMultipleTweetsMock).not.toHaveBeenCalled();
+
+    // DB保存関数が呼び出されないことを確認
+    expect(saveScrapedLogMock).not.toHaveBeenCalled();
+
+    // 処理が早期終了し、戻り値が undefined であることを確認
+    expect(result).toBeUndefined();
+  });
+
   it("should exit early where the previous latest product ID is not found in the current product list", async () => {
     fetchLatestProductIdMock.mockResolvedValueOnce(999999); // 存在しないIDを返す
 
