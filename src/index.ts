@@ -52,10 +52,7 @@ export const handler: Handler = async (event, context) => {
     // hashtags: ["#Lapwing"], 試験運用中はタグなし
   }));
   const tweetResultList = await createMultipleTweets(tweetParams);
-  const latestRateLimit = tweetResultList.findLast(
-    (result) => result.type === "success",
-  )?.rateLimit;
-  console.debug("rateLimit:", latestRateLimit);
+  console.debug("tweetResults:", tweetResultList);
 
   // 公開日時が降順の newProductIdList に併せて tweetIdList も降順にする
   const tweetIdList = tweetResultList.toReversed().map((result) => {
