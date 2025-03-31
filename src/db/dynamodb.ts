@@ -13,7 +13,7 @@ const scrapingLogTableSchema = v.object({
   ScrapedAt: v.pipe(v.string(), v.isoTimestamp()),
 
   NewProductIdList: v.array(v.number()),
-  TweetIdList: v.array(v.optional(v.string())),
+  TweetIdList: v.array(v.nullable(v.string())),
 });
 
 type ScrapeLogTable = v.InferOutput<typeof scrapingLogTableSchema>;
@@ -27,7 +27,7 @@ const dbClient = DynamoDBDocument.from(
 export const saveScrapedLog = async (
   scrapedAt: Date,
   productIdList: number[],
-  tweetIdList: (string | undefined)[],
+  tweetIdList: (string | null)[],
 ) => {
   const record = buildScrapingLogRecord({
     scrapedAt: scrapedAt,
@@ -58,7 +58,7 @@ const buildScrapingLogRecord = ({
 }: {
   scrapedAt: Date;
   productIdList: number[];
-  tweetIdList: (string | undefined)[];
+  tweetIdList: (string | null)[];
 }): ScrapeLogTable => {
   const transformedInput: v.InferInput<typeof scrapingLogTableSchema> = {
     ScrapedAt: scrapedAt.toISOString(),

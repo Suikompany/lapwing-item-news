@@ -59,7 +59,7 @@ export const handler: Handler = async (event, context) => {
     if (result.type === "success") {
       return result.id;
     }
-    return undefined;
+    return null;
   });
   console.debug("tweetIds:", tweetIdList);
 
