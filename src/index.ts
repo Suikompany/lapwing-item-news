@@ -37,7 +37,7 @@ export const handler: Handler = async (event, context) => {
 
   // 今回新たに見つかった商品一覧を求める
   const newProductList = productList.slice(0, indexOfPrevLatestProductId);
-  console.debug("newProducts:", newProductList);
+  console.debug("newProducts:", JSON.stringify(newProductList, null, 2));
 
   // 新しい商品が一つもない場合は早期終了
   if (newProductList.length < 1) {
@@ -52,7 +52,7 @@ export const handler: Handler = async (event, context) => {
     // hashtags: ["#Lapwing"], 試験運用中はタグなし
   }));
   const tweetResultList = await createMultipleTweets(tweetParams);
-  console.debug("tweetResults:", tweetResultList);
+  console.debug("tweetResults:", JSON.stringify(tweetResultList, null, 2));
 
   // 公開日時が降順の newProductIdList に併せて tweetIdList も降順にする
   const tweetIdList = tweetResultList.toReversed().map((result) => {
@@ -61,7 +61,7 @@ export const handler: Handler = async (event, context) => {
     }
     return null;
   });
-  console.debug("tweetIds:", tweetIdList);
+  console.debug("tweetIds:", JSON.stringify(tweetIdList, null, 2));
 
   // DB に保存
   const newProductIdList = newProductList.map(({ id }) => id);
