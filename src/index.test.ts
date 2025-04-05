@@ -141,14 +141,9 @@ describe("handler", () => {
   const putLatestProductIdMock = vi.mocked(putLatestProductId);
   const saveScrapedLogMock = vi.mocked(saveScrapedLog);
 
+  // TODO: putLatestProductIdMock が呼び出されることを確認するようにテストケースを修正する
+
   it("found 0 products and exit early", async () => {
-    createMultipleTweetsMock.mockResolvedValue([
-      {
-        type: "success",
-        id: "123",
-        rateLimit: { reset: 123, limit: 17, remaining: 10 },
-      },
-    ]);
     scrapeProductListMock.mockResolvedValueOnce(DUMMY_PRODUCT_LIST);
     fetchLatestProductIdMock.mockResolvedValueOnce(DUMMY_PRODUCT_LIST[0].id);
 
@@ -164,7 +159,12 @@ describe("handler", () => {
       {
         type: "success",
         id: "100001",
-        rateLimit: { reset: 123, limit: 17, remaining: 10 },
+        rateLimit: {
+          reset: 1234,
+          limit: 100,
+          remaining: 93,
+          day: { reset: 123, limit: 17, remaining: 10 },
+        },
       },
     ]);
     scrapeProductListMock.mockResolvedValueOnce(DUMMY_PRODUCT_LIST);
@@ -194,12 +194,22 @@ describe("handler", () => {
       {
         type: "success",
         id: "100001",
-        rateLimit: { reset: 123, limit: 17, remaining: 10 },
+        rateLimit: {
+          reset: 1234,
+          limit: 100,
+          remaining: 93,
+          day: { reset: 123, limit: 17, remaining: 10 },
+        },
       },
       {
         type: "success",
         id: "100002",
-        rateLimit: { reset: 123, limit: 17, remaining: 9 },
+        rateLimit: {
+          reset: 1234,
+          limit: 100,
+          remaining: 92,
+          day: { reset: 123, limit: 17, remaining: 9 },
+        },
       },
     ]);
     scrapeProductListMock.mockResolvedValueOnce(DUMMY_PRODUCT_LIST);
@@ -234,52 +244,102 @@ describe("handler", () => {
       {
         type: "success",
         id: "100001",
-        rateLimit: { reset: 123, limit: 17, remaining: 10 },
+        rateLimit: {
+          reset: 1234,
+          limit: 100,
+          remaining: 93,
+          day: { reset: 123, limit: 17, remaining: 10 },
+        },
       },
       {
         type: "success",
         id: "100002",
-        rateLimit: { reset: 123, limit: 17, remaining: 9 },
+        rateLimit: {
+          reset: 1234,
+          limit: 100,
+          remaining: 92,
+          day: { reset: 123, limit: 17, remaining: 9 },
+        },
       },
       {
         type: "success",
         id: "100003",
-        rateLimit: { reset: 123, limit: 17, remaining: 8 },
+        rateLimit: {
+          reset: 1234,
+          limit: 100,
+          remaining: 91,
+          day: { reset: 123, limit: 17, remaining: 8 },
+        },
       },
       {
         type: "success",
         id: "100004",
-        rateLimit: { reset: 123, limit: 17, remaining: 7 },
+        rateLimit: {
+          reset: 1234,
+          limit: 100,
+          remaining: 90,
+          day: { reset: 123, limit: 17, remaining: 7 },
+        },
       },
       {
         type: "success",
         id: "100005",
-        rateLimit: { reset: 123, limit: 17, remaining: 6 },
+        rateLimit: {
+          reset: 1234,
+          limit: 100,
+          remaining: 89,
+          day: { reset: 123, limit: 17, remaining: 6 },
+        },
       },
       {
         type: "success",
         id: "100006",
-        rateLimit: { reset: 123, limit: 17, remaining: 5 },
+        rateLimit: {
+          reset: 1234,
+          limit: 100,
+          remaining: 88,
+          day: { reset: 123, limit: 17, remaining: 5 },
+        },
       },
       {
         type: "success",
         id: "100007",
-        rateLimit: { reset: 123, limit: 17, remaining: 4 },
+        rateLimit: {
+          reset: 1234,
+          limit: 100,
+          remaining: 87,
+          day: { reset: 123, limit: 17, remaining: 4 },
+        },
       },
       {
         type: "success",
         id: "100008",
-        rateLimit: { reset: 123, limit: 17, remaining: 3 },
+        rateLimit: {
+          reset: 1234,
+          limit: 100,
+          remaining: 86,
+          day: { reset: 123, limit: 17, remaining: 3 },
+        },
       },
       {
         type: "success",
         id: "100009",
-        rateLimit: { reset: 123, limit: 17, remaining: 2 },
+        rateLimit: {
+          reset: 1234,
+          limit: 100,
+          remaining: 85,
+          day: { reset: 123, limit: 17, remaining: 2 },
+        },
       },
       {
         type: "success",
         id: "100010",
-        rateLimit: { reset: 123, limit: 17, remaining: 1 },
+        rateLimit: {
+          reset: 1234,
+          limit: 100,
+          remaining: 84,
+          day: { reset: 123, limit: 17, remaining: 1 },
+        },
       },
     ]);
     scrapeProductListMock.mockResolvedValueOnce(DUMMY_PRODUCT_LIST);

@@ -29,7 +29,12 @@ type CreateMultipleTweets = (
         type: "success";
         id: string;
         rateLimit:
-          | { limit: number; remaining: number; reset: number }
+          | {
+              limit: number;
+              remaining: number;
+              reset: number;
+              day?: { limit: number; remaining: number; reset: number };
+            }
           | undefined;
       }
     | { type: "error"; error: Error }
@@ -48,7 +53,12 @@ export const createMultipleTweets: CreateMultipleTweets = async (params) => {
         type: "success";
         id: string;
         rateLimit:
-          | { limit: number; remaining: number; reset: number }
+          | {
+              limit: number;
+              remaining: number;
+              reset: number;
+              day?: { limit: number; remaining: number; reset: number };
+            }
           | undefined;
       }
     | { type: "error"; error: Error }
@@ -85,6 +95,7 @@ type CreateTweet = (params: {
         limit: number;
         remaining: number;
         reset: number;
+        day?: { limit: number; remaining: number; reset: number };
       }
     | undefined;
 }>;
@@ -127,6 +138,7 @@ type SendTweet = (params: {
         limit: number;
         remaining: number;
         reset: number;
+        day?: { limit: number; remaining: number; reset: number };
       }
     | undefined;
 }>;
