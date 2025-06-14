@@ -9,6 +9,7 @@ const PRODUCT_PATH = "https://booth.pm/ja/items" as const;
 type SearchQueryParams = {
   sort?: "new";
   "except_words[]"?: string[];
+  "tags[]"?: string[];
   page?: `${number}`;
 };
 
@@ -49,6 +50,7 @@ export const scrapeProductList = async () => {
     queryParams: {
       sort: "new",
       "except_words[]": ["3D環境・ワールド"],
+      "tags[]": ["Lapwing"],
     },
   });
   const res = await fetch(url, {
