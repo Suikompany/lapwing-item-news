@@ -4,8 +4,8 @@ import { createMultipleTweets, createTweet } from "./twitter";
 
 vi.mock("twitter-api-v2");
 
-vi.mock("../param/ssmParam", () => ({
-  fetchTwitterApiTokens: vi.fn().mockResolvedValue({
+vi.mock("../param/envParam", () => ({
+  fetchTwitterCredentials: vi.fn().mockResolvedValue({
     apiKey: "testApiKey",
     apiSecret: "testApiSecret",
     accessToken: "testAccessToken",

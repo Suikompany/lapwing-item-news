@@ -1,0 +1,32 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "lapwing-item-news",
+  "main": "src/index.ts",
+  "minify": true,
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
+  "compatibility_date": "2025-09-29",
+
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1 // optional. default = 1.
+  },
+
+  "triggers": {
+    "crons": [
+      "*/10 * * * *" // every 10 minutes
+    ]
+  },
+
+  "r2_buckets": [
+    {
+      "binding": "LAPWING_ITEM_NEWS_BUCKET",
+      "bucket_name": "lapwing-item-news"
+    }
+  ],
+
+  "vars": {
+    "ALLOW_TWEET": false,
+  }
+}

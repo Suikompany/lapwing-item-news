@@ -1,17 +1,18 @@
 import { ApiRequestError, ApiResponseError, TwitterApi } from "twitter-api-v2";
 import type { SendTweetV2Params, TweetV2PostTweetResult } from "twitter-api-v2";
 
-import { fetchTwitterApiTokens } from "../param/ssmParam";
 import { buildProductUrl } from "../booth/products";
+import {
+  fetchTwitterCredentials,
+  type TwitterCredentials,
+} from "../param/envParam";
 
-const initTwitterClient = async () => {
-  const tokens = await fetchTwitterApiTokens();
-
+const initTwitterClient = async (credentials: TwitterCredentials) => {
   const baseClient = new TwitterApi({
-    appKey: tokens.apiKey,
-    appSecret: tokens.apiSecret,
-    accessToken: tokens.accessToken,
-    accessSecret: tokens.accessTokenSecret,
+    appKey: credentials.apiKey,
+    appSecret: credentials.apiSecret,
+    accessToken: credentials.accessToken,
+    accessSecret: credentials.accessTokenSecret,
   });
 
   const rwClientV2 = baseClient.readWrite.v2;
@@ -19,7 +20,7 @@ const initTwitterClient = async () => {
   return rwClientV2;
 };
 
-const client = await initTwitterClient();
+const client = await initTwitterClient(fetchTwitterCredentials());
 
 type CreateMultipleTweets = (
   params: readonly Parameters<CreateTweet>[0][],
