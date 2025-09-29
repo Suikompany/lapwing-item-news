@@ -13,14 +13,14 @@ const main = async () => {
   // 今回の商品一覧（最新が1番目）を取得
   const productList = await scrapeProductList();
 
-  console.debug("productList:", JSON.stringify(productList, null, 2));
+  console.log("productList:", JSON.stringify(productList, null, 2));
 
   // 今回新たに見つかった商品一覧を求める
   const newProductList = productList.filter(
     ({ id }) => !prevProductIdList.includes(id),
   );
 
-  console.debug("newProductList:", JSON.stringify(newProductList, null, 2));
+  console.log("newProductList:", JSON.stringify(newProductList, null, 2));
 
   // 新しい商品が一つもない場合は早期終了
   if (newProductList.length < 1) {
@@ -46,7 +46,7 @@ const main = async () => {
     ? await createMultipleTweets(tweetParamList)
     : [];
 
-  console.debug("tweetResults:", JSON.stringify(tweetResultList, null, 2));
+  console.log("tweetResults:", JSON.stringify(tweetResultList, null, 2));
 
   // 公開日時が降順の newProductIdList に併せて tweetIdList も降順にする
   const tweetIdList = tweetResultList.toReversed().map((result) => {
@@ -55,7 +55,7 @@ const main = async () => {
     }
     return null;
   });
-  console.debug("tweetIds:", JSON.stringify(tweetIdList, null, 2));
+  console.log("tweetIds:", JSON.stringify(tweetIdList, null, 2));
 
   // ログを保存
   await putLog(
@@ -72,7 +72,7 @@ const scheduledHandler: ExportedHandlerScheduledHandler = async (
   _,
   ctx,
 ) => {
-  console.log("Scheduled event begin:", controller.cron);
+  console.log("Scheduled event begin");
   await main();
   console.log("Scheduled event end");
 };
