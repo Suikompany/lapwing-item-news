@@ -57,12 +57,11 @@ resource "aws_iam_role_policy" "github_actions_policy" {
       {
         Effect   = "Allow"
         Action = [
-          "s3:PutBucketVersioning",
-          "s3:GetObject",
-          "s3:PutObject",
+          "s3:*"
         ]
         Resource = [
-          aws_s3_bucket.tf_backend.arn
+          aws_s3_bucket.tf_backend.arn,
+          "${aws_s3_bucket.tf_backend.arn}/*"
         ]
       },
       {
