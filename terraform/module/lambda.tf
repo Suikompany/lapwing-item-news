@@ -1,3 +1,14 @@
+locals {
+  lambda = {
+    function_name    = "${local.name}-${local.stage}-lambda"
+    execution_role   = "${local.name}-${local.stage}-lambda-role"
+    execution_policy = "${local.name}-${local.stage}-lambda-policy"
+    runtime          = "nodejs22.x"
+    file_name        = "index"
+    handler          = "handler"
+  }
+}
+
 data "archive_file" "lambda_function" {
   type        = "zip"
   source_dir  = "../dist/code"
@@ -57,21 +68,12 @@ resource "aws_iam_policy" "lambda_policy" {
       {
         Effect = "Allow"
         Action = [
-          "dynamodb:GetItem",
-          "dynamodb:PutItem",
-          "dynamodb:UpdateItem"
-        ],
-        Resource = aws_dynamodb_table.scraped_log.arn
-      },
-      {
-        Effect = "Allow"
-        Action = [
-          "ssm:PutParameter",
-          "ssm:GetParameter"
+          "s3:PutObject",
+          "s3:GetObject",
         ],
         Resource = [
-          aws_ssm_parameter.latest_product_id.arn
-        ]
+          "${aws_s3_bucket.bucket.arn}/*"
+          ]
       },
       {
         Effect = "Allow"

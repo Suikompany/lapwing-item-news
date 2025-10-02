@@ -1,0 +1,119 @@
+terraform {
+  required_version = ">= 1.2.0"
+
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.0"
+    }
+  }
+}
+
+provider "aws" {
+  region  = "ap-northeast-1"
+}
+# GitHub Actions OIDCプロバイダー設定
+resource "aws_iam_openid_connect_provider" "github_actions" {
+  url             = "https://token.actions.githubusercontent.com"
+  # GitHubのOIDCの証明書のサムプリント https://github.blog/changelog/2022-01-13-github-actions-update-on-oidc-based-deployments-to-aws/
+  thumbprint_list = ["6938fd4d98bab03faadb97b34396831e3780aea1"]
+
+  client_id_list  = ["sts.amazonaws.com"]
+}
+
+# GitHub Actions 用ロール
+resource "aws_iam_role" "github_actions_role" {
+  name = "lapwing-item-news-deploy-role"
+  path = "/"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Action = "sts:AssumeRoleWithWebIdentity"
+      Principal = {
+        Federated = aws_iam_openid_connect_provider.github_actions.arn
+      }
+      Condition = {
+        StringEquals = {
+            "token.actions.githubusercontent.com:aud" = "sts.amazonaws.com"
+        },
+        StringLike = {
+          "token.actions.githubusercontent.com:sub" = [
+            "repo:Suikompany/lapwing-item-news:*",
+          ]
+        }
+      }
+    }]
+  })
+}
+
+resource "aws_iam_role_policy" "github_actions_policy" {
+  name = "lapwing-item-news-deploy-policy"
+  role = aws_iam_role.github_actions_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect   = "Allow"
+        Action = [
+          "s3:PutBucketVersioning",
+          "s3:GetObject",
+          "s3:PutObject",
+        ]
+        Resource = [
+          aws_s3_bucket.tf_backend.arn
+        ]
+      },
+      {
+        Effect   = "Allow"
+        Action = [
+          "iam:AttachRolePolicy",
+          "iam:CreateRole",
+          "iam:CreatePolicy",
+          "iam:PutRolePolicy",
+          "iam:UpdateRole",
+        ]
+        Resource = "*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "lambda:CreateFunction",
+          "lambda:UpdateFunctionCode",
+          "lambda:UpdateFunctionConfiguration",
+          "lambda:AddPermission",
+        ]
+        Resource = "*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "s3:CreateBucket",
+        ]
+        Resource = "*"
+      },
+      {
+        Effect   = "Allow"
+        Action = [
+          "ssm:PutParameter",
+          "ssm:GetParameter",
+          "ssm:GetParameters",
+          "ssm:GetParametersByPath",
+        ]
+        Resource = "*"
+      }
+    ]
+  })
+}
+
+resource "aws_s3_bucket" "tf_backend" {
+  bucket = "lapwing-item-news-tf-backend"
+}
+
+resource "aws_s3_bucket_versioning" "tf_backend" {
+  bucket = aws_s3_bucket.tf_backend.bucket
+  versioning_configuration {
+    status = "Enabled"
+  }
+}

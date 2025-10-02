@@ -1,3 +1,12 @@
+locals {
+    scheduler = {
+    group_name       = "${local.name}-${local.stage}-scheduler-group"
+    name             = "${local.name}-${local.stage}-scheduler"
+    execution_role   = "${local.name}-${local.stage}-scheduler-role"
+    execution_policy = "${local.name}-${local.stage}-scheduler-policy"
+  }
+}
+
 resource "aws_scheduler_schedule_group" "group" {
   name = local.scheduler.group_name
 }
@@ -21,12 +30,8 @@ resource "aws_scheduler_schedule" "invoke_lambda" {
     retry_policy {
       maximum_retry_attempts = 0
     }
-
   }
-
 }
-
-
 
 resource "aws_iam_role" "scheduler_role" {
   name = local.scheduler.execution_role

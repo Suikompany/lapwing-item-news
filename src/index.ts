@@ -1,10 +1,11 @@
 import type { Handler } from "aws-lambda";
 
 import { scrapeProductList } from "./booth/products";
-import { createMultipleTweets } from "./twitter/twitter";
-import { saveScrapedLog } from "./db/dynamodb";
-import { fetchLatestProductId, putLatestProductId } from "./param/ssmParam";
+import { createMultipleTweets, createTwitterClient } from "./twitter/twitter";
+import { getScrapedData, putScrapedData, putLog } from "./db/s3";
+import { fetchTwitterCredentials } from "./param/ssmParam";
 import { truncateUnderMin } from "./util/truncateUnderMin";
+import { ALLOW_TWEET } from "./param/envParam";
 
 export const handler: Handler = async (event, context) => {
   const startScrapedAt = truncateUnderMin(new Date());
@@ -12,37 +13,26 @@ export const handler: Handler = async (event, context) => {
   // 今回の商品一覧（最新が1番目）を取得
   const productList = await scrapeProductList();
 
-  // 前回の最新商品 ID を取得
-  const prevLatestProductId = await fetchLatestProductId();
-  console.debug("prevLatestProductId:", prevLatestProductId);
+  // 前回の商品一覧を取得
+  const { product_ids: prevProductIdList } = await getScrapedData();
+  console.debug("prevProductIdList:", prevProductIdList);
 
-  // 今回の一覧にある前回の最新商品のインデックスを求める
-  const indexOfPrevLatestProductId = productList.findIndex(
-    (product) => product.id === prevLatestProductId,
+  // 今回新しく見つけた商品一覧を求める
+  const newProductList = productList.filter(
+    (product) => !prevProductIdList.includes(product.id),
   );
-  console.debug("indexOfPrevLatestProductId:", indexOfPrevLatestProductId);
-
-  // 今回の最新商品 ID が前回の最新商品 ID と同じ場合はパラメータ更新前に早期終了
-  if (indexOfPrevLatestProductId === 0) {
-    return;
-  }
-
-  // 今回の最新商品 ID でパラメータを更新
-  await putLatestProductId(productList[0].id);
-
-  // 前回の最新商品が見つからなかった場合は早期終了
-  if (indexOfPrevLatestProductId === -1) {
-    return;
-  }
-
-  // 今回新たに見つかった商品一覧を求める
-  const newProductList = productList.slice(0, indexOfPrevLatestProductId);
   console.debug("newProducts:", JSON.stringify(newProductList, null, 2));
 
   // 新しい商品が一つもない場合は早期終了
   if (newProductList.length < 1) {
     return;
   }
+
+  // 今回の商品一覧で更新
+  await putScrapedData(
+    startScrapedAt,
+    productList.map(({ id }) => id),
+  );
 
   // 時系列通りにツイートするため、公開日時の昇順にしたパラメータを作成
   const tweetParams = newProductList.toReversed().map((product) => ({
@@ -51,7 +41,35 @@ export const handler: Handler = async (event, context) => {
     hashtags: [],
     // hashtags: ["#Lapwing"], 試験運用中はタグなし
   }));
-  const tweetResultList = await createMultipleTweets(tweetParams);
+
+  const tweetIdList = await make_tweets(tweetParams);
+
+  // ログを保存
+  await putLog(
+    startScrapedAt,
+    newProductList.map((product, index) => ({
+      product_id: product.id,
+      tweet_id: tweetIdList.at(index) ?? null,
+    })),
+  );
+
+  return context.logStreamName;
+};
+
+const make_tweets = async (
+  params: {
+    productName: string;
+    productId: number;
+    hashtags: `#${string}`[];
+  }[],
+) => {
+  if (!ALLOW_TWEET) return [];
+
+  const twitterClient = createTwitterClient({
+    tokens: await fetchTwitterCredentials(),
+  });
+
+  const tweetResultList = await createMultipleTweets(twitterClient, params);
   console.debug("tweetResults:", JSON.stringify(tweetResultList, null, 2));
 
   // 公開日時が降順の newProductIdList に併せて tweetIdList も降順にする
@@ -63,10 +81,5 @@ export const handler: Handler = async (event, context) => {
   });
   console.debug("tweetIds:", JSON.stringify(tweetIdList, null, 2));
 
-  // DB に保存
-  const newProductIdList = newProductList.map(({ id }) => id);
-  await saveScrapedLog(startScrapedAt, newProductIdList, tweetIdList);
-  console.debug("saved ScrapedAt:", startScrapedAt);
-
-  return context.logStreamName;
+  return tweetIdList;
 };

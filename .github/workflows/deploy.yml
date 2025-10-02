@@ -2,14 +2,40 @@ name: Deploy
 
 on:
   workflow_dispatch:
+    inputs:
+      environment:
+        type: choice
+        required: true
+        options:
+          - 'dev'
+          - 'prod'
 
 permissions:
+  id-token: write
   contents: read
 
-# just a placeholder
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
+      - uses: aws-actions/configure-aws-credentials@v5
+        with:
+          role-to-assume: ${{ secrets.DEPLOY_ROLE_ARN }}
+          aws-region: 'ap-northeast-1'
+      - uses: hashicorp/setup-terraform@v3
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+      - run: pnpm install
+      - run: pnpm build
+      - run: terraform -chdir="terraform/environment/${{ inputs.environment }}" init
+      - id: tf-plan
+        run: terraform -chdir="terraform/environment/${{ inputs.environment }}" plan
+      - run: echo ${{ steps.tf-plan.outputs.stdout }}
+      - run: echo ${{ steps.tf-plan.outputs.stderr }}
+      - run: echo ${{ steps.tf-plan.outputs.exitcode }}
