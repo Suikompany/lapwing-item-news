@@ -9,6 +9,7 @@ on:
         options:
           - 'dev'
           - 'prod'
+        default: 'dev'
   pull_request:
     branches:
       - main
