@@ -1,4 +1,6 @@
 locals {
+
+  dist_dir = "../../../dist"
   lambda = {
     function_name    = "${local.name}-${local.stage}-lambda"
     execution_role   = "${local.name}-${local.stage}-lambda-role"
@@ -11,8 +13,9 @@ locals {
 
 data "archive_file" "lambda_function" {
   type        = "zip"
-  source_dir  = "../dist/code"
-  output_path = "../dist/archive/${local.lambda.file_name}.zip"
+  source_dir  = "${local.dist_dir}/src"
+  excludes = ["${local.dist_dir}/out"]
+  output_path = "${local.dist_dir}/out/${local.lambda.file_name}.zip"
 }
 
 resource "aws_lambda_function" "lambda_function" {
