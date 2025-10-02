@@ -52,16 +52,15 @@ jobs:
         run: terraform validate -no-color
       - id: tf-plan
         run: terraform -chdir=${{ env.tf-base }}/${{ env.stage }} plan -no-color
-        continue-on-error: true
         env:
           TF_VAR_twitter_api_key: ${{ secrets.TWITTER_API_KEY }}
           TF_VAR_twitter_api_secret: ${{ secrets.TWITTER_API_SECRET }}
           TF_VAR_twitter_access_token: ${{ secrets.TWITTER_ACCESS_TOKEN }}
           TF_VAR_twitter_access_token_secret: ${{ secrets.TWITTER_ACCESS_TOKEN_SECRET }}
       - uses: actions/github-script@v8
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' && (success() || failure())
         env:
-          PLAN: "terraform\n${{ steps.tf-plan.outputs.stdout }}"
+          PLAN: "${{ steps.tf-plan.outputs.stdout }}"
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -69,7 +68,7 @@ jobs:
             #### Terraform Validation 🤖\`${{ steps.tf-validate.outcome }}\`
             <details><summary>Validation Output</summary>
 
-            \`\`\`\n
+            \`\`\`
             ${{ steps.tf-validate.outputs.stdout }}
             \`\`\`
 
@@ -79,13 +78,13 @@ jobs:
 
             <details><summary>Show Plan</summary>
 
-            \`\`\`\n
+            \`\`\`terraform
             ${process.env.PLAN}
             \`\`\`
 
             </details>
 
-            *Pusher: ${{ github.actor }}, Stage: \`${{ env.stage }}\`*
+            *Pusher: \`${{ github.actor }}\`, Stage: \`${{ env.stage }}\`*
 
             If you want to deploy this, please comment \`/deploy\` on this PR.`;
 
