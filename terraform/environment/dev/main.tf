@@ -1,5 +1,5 @@
 module "main" {
-  source = "../../modules"
+  source = "../../module"
   stage  = "dev"
   twitter_access_token = var.twitter_access_token
   twitter_access_token_secret = var.twitter_access_token_secret
