@@ -85,13 +85,13 @@ jobs:
 
             </details>
 
-            *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`, Working Directory: \`${{ env.tf-base }}/${{ env.stage }}\`, Workflow: \`${{ github.workflow }}\`*
+            *Pusher: ${{ github.actor }}, Stage: \`${{ env.stage }}\`*
 
             If you want to deploy this, please comment \`/deploy\` on this PR.`;
 
             github.rest.issues.createComment({
-              issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
+              issue_number: context.issue.number,
               body: output
             })

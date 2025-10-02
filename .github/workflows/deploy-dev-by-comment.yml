@@ -60,24 +60,25 @@ jobs:
           TF_VAR_twitter_access_token: ${{ secrets.TWITTER_ACCESS_TOKEN }}
           TF_VAR_twitter_access_token_secret: ${{ secrets.TWITTER_ACCESS_TOKEN_SECRET }}
       - uses: actions/github-script@v8
-        if: github.event_name == 'pull_request'
+        if: github.event.issue.pull_request
         env:
-          PLAN: "terraform\n${{ steps.tf-plan.outputs.stdout }}"
+          APPLY: "terraform\n${{ steps.tf-apply.outputs.stdout }}"
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const output = `#### Terraform Apply 📦 \`${{ steps.tf-apply.outcome }}\`
-            <details><summary>Validation Output</summary>
+
+            <details><summary>Show Apply</summary>
 
             \`\`\`\n
-            ${{ steps.tf-apply.outputs.stdout }}
+            ${process.env.APPLY}
             \`\`\`
 
             </details>`;
 
             github.rest.issues.createComment({
-              issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
+              issue_number: context.issue.number,
               body: output
             })
