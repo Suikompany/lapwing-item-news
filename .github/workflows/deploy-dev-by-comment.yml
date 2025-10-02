@@ -18,9 +18,7 @@ jobs:
   apply:
     runs-on: ubuntu-latest
     if: github.event.issue.pull_request && startsWith(github.event.comment.body, '/deploy')
-    environment:
-      name: dev
-      url: ${{ github.event.repository.url }}/actions/runs/${{ github.run_id }}
+    environment: dev
     timeout-minutes: 15
     steps:
       - id: get-branch
