@@ -21,7 +21,7 @@ jobs:
     environment:
       name: dev
       url: ${{ github.event.repository.url }}/actions/runs/${{ github.run_id }}
-    timeout-minutes: 5
+    timeout-minutes: 15
     steps:
       - id: get-branch
         uses: actions/github-script@v8
@@ -54,6 +54,8 @@ jobs:
         run: terraform -chdir=${{ env.tf-dir }} init
       - id: tf-apply
         run: terraform -chdir=${{ env.tf-dir }} apply -auto-approve -no-color
+        continue-on-error: true
+        timeout-minutes: 10
         env:
           TF_VAR_twitter_api_key: ${{ secrets.TWITTER_API_KEY }}
           TF_VAR_twitter_api_secret: ${{ secrets.TWITTER_API_SECRET }}
