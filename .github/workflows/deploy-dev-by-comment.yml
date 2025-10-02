@@ -17,7 +17,9 @@ jobs:
   apply:
     runs-on: ubuntu-latest
     if: (github.event.issue.pull_request != null) && github.event.comment.body == '/deploy'
-    environment: dev
+    environment:
+      name: dev
+      url: ${{ github.event.repository.url }}/actions/runs/${{ github.run_id }}
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4

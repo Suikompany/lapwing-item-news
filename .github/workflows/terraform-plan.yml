@@ -24,12 +24,13 @@ permissions:
   pull-requests: write
 
 env:
-  tf-dir: terraform/environment/${{ inputs.stage }}
+  stage: ${{ inputs.stage || 'dev' }}
+  tf-base: terraform/environment
 
 jobs:
   plan:
     runs-on: ubuntu-latest
-    environment: ${{ inputs.stage }}
+    environment: ${{ inputs.stage || 'dev' }}
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
@@ -46,11 +47,11 @@ jobs:
       - run: pnpm install
       - run: pnpm build
       - id: tf-init
-        run: terraform -chdir=${{ env.tf-dir }} init
+        run: terraform -chdir=${{ env.tf-base }}/${{ env.stage }} init
       - id: tf-validate
         run: terraform validate -no-color
       - id: tf-plan
-        run: terraform -chdir=${{ env.tf-dir }} plan -no-color
+        run: terraform -chdir=${{ env.tf-base }}/${{ env.stage }} plan -no-color
         continue-on-error: true
         env:
           TF_VAR_twitter_api_key: ${{ secrets.TWITTER_API_KEY }}
@@ -84,7 +85,7 @@ jobs:
 
             </details>
 
-            *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`, Working Directory: \`${{ env.tf-dir }}\`, Workflow: \`${{ github.workflow }}\`*
+            *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`, Working Directory: \`${{ env.tf-base }}/${{ env.stage }}\`, Workflow: \`${{ github.workflow }}\`*
 
             If you want to deploy this, please comment \`/deploy\` on this PR.`;
 
