@@ -1,0 +1,95 @@
+name: Terraform Plan By PR/Dispatch
+
+on:
+  workflow_dispatch:
+    inputs:
+      stage:
+        type: choice
+        required: true
+        options:
+          - 'dev'
+          - 'prod'
+  pull_request:
+    branches:
+      - main
+      - develop
+    types:
+      - opened
+      - synchronize
+
+permissions:
+  id-token: write
+  contents: read
+  pull-requests: write
+
+env:
+  tf-dir: terraform/environment/${{ inputs.stage }}
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.stage }}
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: aws-actions/configure-aws-credentials@v5
+        with:
+          role-to-assume: ${{ secrets.DEPLOY_ROLE_ARN }}
+          aws-region: 'ap-northeast-1'
+      - uses: hashicorp/setup-terraform@v3
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+      - run: pnpm install
+      - run: pnpm build
+      - id: tf-init
+        run: terraform -chdir=${{ env.tf-dir }} init
+      - id: tf-validate
+        run: terraform validate -no-color
+      - id: tf-plan
+        run: terraform -chdir=${{ env.tf-dir }} plan -no-color
+        continue-on-error: true
+        env:
+          TF_VAR_twitter_api_key: ${{ secrets.TWITTER_API_KEY }}
+          TF_VAR_twitter_api_secret: ${{ secrets.TWITTER_API_SECRET }}
+          TF_VAR_twitter_access_token: ${{ secrets.TWITTER_ACCESS_TOKEN }}
+          TF_VAR_twitter_access_token_secret: ${{ secrets.TWITTER_ACCESS_TOKEN_SECRET }}
+      - uses: actions/github-script@v8
+        if: github.event_name == 'pull_request'
+        env:
+          PLAN: "terraform\n${{ steps.tf-plan.outputs.stdout }}"
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const output = `#### Terraform Initialization ⚙️\`${{ steps.tf-init.outcome }}\`
+            #### Terraform Validation 🤖\`${{ steps.tf-validate.outcome }}\`
+            <details><summary>Validation Output</summary>
+
+            \`\`\`\n
+            ${{ steps.tf-validate.outputs.stdout }}
+            \`\`\`
+
+            </details>
+
+            #### Terraform Plan 📖\`${{ steps.tf-plan.outcome }}\`
+
+            <details><summary>Show Plan</summary>
+
+            \`\`\`\n
+            ${process.env.PLAN}
+            \`\`\`
+
+            </details>
+
+            *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`, Working Directory: \`${{ env.tf-dir }}\`, Workflow: \`${{ github.workflow }}\`*
+
+            If you want to deploy this, please comment \`/deploy\` on this PR.`;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: output
+            })

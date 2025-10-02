@@ -1,26 +1,23 @@
-name: Deploy
+name: Deploy dev by comment
 
 on:
-  workflow_dispatch:
-    inputs:
-      environment:
-        type: choice
-        required: true
-        options:
-          - 'dev'
-          - 'prod'
+  pull_request_comment:
+    types:
+      - created
 
 permissions:
   id-token: write
   contents: read
+  actions: read
 
 env:
-  tf-dir: terraform/environment/${{ inputs.environment }}
+  tf-dir: terraform/environment/dev
 
 jobs:
-  deploy:
+  apply:
     runs-on: ubuntu-latest
-    environment: ${{ inputs.environment }}
+    if: (github.event.issue.pull_request != null) && github.event.comment.body == '/deploy'
+    environment: dev
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
@@ -36,14 +33,12 @@ jobs:
           cache: 'pnpm'
       - run: pnpm install
       - run: pnpm build
-      - run: terraform -chdir=${{ env.tf-dir }} init
-      - id: tf-plan
-        run: terraform -chdir=${{ env.tf-dir }} plan
+      - id: tf-init
+        run: terraform -chdir=${{ env.tf-dir }} init
+      - id: tf-apply
+        run: terraform -chdir=${{ env.tf-dir }} apply -auto-approve -no-color
         env:
           TF_VAR_twitter_api_key: ${{ secrets.TWITTER_API_KEY }}
           TF_VAR_twitter_api_secret: ${{ secrets.TWITTER_API_SECRET }}
           TF_VAR_twitter_access_token: ${{ secrets.TWITTER_ACCESS_TOKEN }}
           TF_VAR_twitter_access_token_secret: ${{ secrets.TWITTER_ACCESS_TOKEN_SECRET }}
-      - run: echo ${{ steps.tf-plan.outputs.stdout }}
-      - run: echo ${{ steps.tf-plan.outputs.stderr }}
-      - run: echo ${{ steps.tf-plan.outputs.exitcode }}
