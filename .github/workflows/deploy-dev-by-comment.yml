@@ -1,4 +1,4 @@
-name: Deploy dev by comment
+name: Deploy `dev` By Comment
 
 on:
   issue_comment:
@@ -16,13 +16,27 @@ env:
 jobs:
   apply:
     runs-on: ubuntu-latest
-    if: (github.event.issue.pull_request != null) && github.event.comment.body == '/deploy'
+    if: github.event.issue.pull_request && startsWith(github.event.comment.body, '/deploy')
     environment:
       name: dev
       url: ${{ github.event.repository.url }}/actions/runs/${{ github.run_id }}
     timeout-minutes: 5
     steps:
+      - id: get-branch
+        uses: actions/github-script@v8
+        with:
+          github-token: ${{secrets.GITHUB_TOKEN}}
+          result-encoding: string
+          script: |
+            const pull_request = await github.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number
+            })
+            return pull_request.data.head.ref
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.get-branch.outputs.result }}
       - uses: aws-actions/configure-aws-credentials@v5
         with:
           role-to-assume: ${{ secrets.DEPLOY_ROLE_ARN }}
