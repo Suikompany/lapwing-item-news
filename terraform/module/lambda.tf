@@ -1,7 +1,7 @@
 variable "dist_dir" {
-  type      = string
-  nullable  = false
-  default   = "dist"
+  type     = string
+  nullable = false
+  default  = "dist"
 }
 
 locals {

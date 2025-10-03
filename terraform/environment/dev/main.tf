@@ -1,5 +1,5 @@
 module "main" {
-  source                      = "../../module"
+  source = "../../module"
 
   stage                       = "dev"
   dist_dir                    = var.dist_dir
@@ -10,9 +10,9 @@ module "main" {
 }
 
 variable "dist_dir" {
-  type      = string
-  nullable  = false
-  default   = "dist"
+  type     = string
+  nullable = false
+  default  = "dist"
 }
 
 variable "twitter_api_key" {
