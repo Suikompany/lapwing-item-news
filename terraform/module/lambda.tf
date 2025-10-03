@@ -1,6 +1,12 @@
+variable "dist_dir" {
+  type      = string
+  nullable  = false
+  default   = "dist"
+}
+
 locals {
 
-  dist_dir = "../../../dist"
+  dist_dir = var.dist_dir
   lambda = {
     function_name    = "${local.name}-${local.stage}-lambda"
     execution_role   = "${local.name}-${local.stage}-lambda-role"
@@ -14,8 +20,8 @@ locals {
 data "archive_file" "lambda_function" {
   type        = "zip"
   source_dir  = "${local.dist_dir}/src"
-  excludes    = ["${local.dist_dir}/out"]
-  output_path = "${local.dist_dir}/out/${local.lambda.file_name}.zip"
+  excludes    = ["*.zip"]
+  output_path = "${local.dist_dir}/${local.lambda.file_name}.zip"
 }
 
 resource "aws_lambda_function" "lambda_function" {

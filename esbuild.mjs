@@ -1,15 +1,15 @@
 import { build } from "esbuild";
 import path from "node:path";
 
-const outDir = "./dist/src";
+const distDir = "./dist";
 
 await build({
   entryPoints: ["./src/index.ts"],
+  outdir: `${distDir}/src`,
   platform: "node",
   format: "esm",
   bundle: true,
   minify: true,
-  outdir: outDir,
   outExtension: { ".js": ".mjs" },
   banner: {
     js: "import{createRequire}from'module';const require=createRequire(import.meta.url);",
@@ -19,4 +19,4 @@ await build({
   },
 });
 
-console.log(path.resolve(outDir));
+console.log(path.resolve(distDir));

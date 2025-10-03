@@ -45,7 +45,8 @@ jobs:
           node-version: '22'
           cache: 'pnpm'
       - run: pnpm install
-      - run: pnpm build
+      - id: build
+        run: echo "dist=$(pnpm run --no-color --silent build)" >> $GITHUB_OUTPUT
       - id: tf-init
         run: terraform -chdir=${{ env.tf-base }}/${{ env.stage }} init
       - id: tf-validate
@@ -53,15 +54,21 @@ jobs:
       - id: tf-plan
         run: terraform -chdir=${{ env.tf-base }}/${{ env.stage }} plan -out=tfplan -no-color
         env:
+          TF_VAR_dist_dir: ${{ steps.build.outputs.dist }}
           TF_VAR_twitter_api_key: ${{ secrets.TWITTER_API_KEY }}
           TF_VAR_twitter_api_secret: ${{ secrets.TWITTER_API_SECRET }}
           TF_VAR_twitter_access_token: ${{ secrets.TWITTER_ACCESS_TOKEN }}
           TF_VAR_twitter_access_token_secret: ${{ secrets.TWITTER_ACCESS_TOKEN_SECRET }}
-      - id: artifact
+      - id: artifact-plan
         uses: actions/upload-artifact@v4
         with:
           name: terraform-plan-${{ env.stage }}
           path: ${{ env.tf-base }}/${{ env.stage }}/tfplan
+      - id: artifact-dist
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-${{ env.stage }}
+          path: ${{ steps.build.outputs.dist }}
       - uses: actions/github-script@v8
         if: github.event_name == 'pull_request' && (success() || failure())
         env:
@@ -91,7 +98,7 @@ jobs:
 
             *Pusher: \`${{ github.actor }}\`, Stage: \`${{ env.stage }}\`*
 
-            If you want to deploy this, please comment \`/deploy ${{ github.run_id }} ${{steps.artifact.outputs.artifact-id }}\` on this PR.`;
+            If you want to deploy this, please comment \`/deploy ${{ github.run_id }}\` on this PR.`;
 
             github.rest.issues.createComment({
               owner: context.repo.owner,
