@@ -34,6 +34,10 @@ jobs:
               throw new Error("Invalid comment format. Expected '/deploy <artifact-id>'.");
             }
             core.setOutput("id", match[1]);
+      - uses: actions/download-artifact@v4
+        with:
+          artifact-ids: ${{ steps.command-args.outputs.id }}
+          path: ${{ env.tf-dir }}
       - id: get-branch
         uses: actions/github-script@v8
         with:
@@ -56,10 +60,6 @@ jobs:
       - uses: hashicorp/setup-terraform@v3
       - id: tf-init
         run: terraform -chdir=${{ env.tf-dir }} init
-      - uses: actions/download-artifact@v4
-        with:
-          name: ${{ steps.command-args.outputs.id }}
-          path: ${{ env.tf-dir }}
       - id: tf-apply
         run: terraform -chdir=${{ env.tf-dir }} apply -auto-approve -no-color tfplan
         timeout-minutes: 20
