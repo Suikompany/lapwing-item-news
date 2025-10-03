@@ -17,14 +17,27 @@ env:
 jobs:
   apply:
     runs-on: ubuntu-latest
-    if: github.event.issue.pull_request && startsWith(github.event.comment.body, '/deploy')
+    if: github.event.issue.pull_request && startsWith(github.event.comment.body, '/deploy ')
     environment: dev
     timeout-minutes: 25
     steps:
+      - name: validate and extract artifact id
+        id: command-args
+        uses: actions/github-script@v8
+        timeout-minutes: 1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const comment = context.payload.comment.body.trim();
+            const match = comment.match(/^\/deploy\s+([a-zA-Z0-9_-]+)$/);
+            if (!match) {
+              throw new Error("Invalid comment format. Expected '/deploy <artifact-id>'.");
+            }
+            core.setOutput("id", match[1]);
       - id: get-branch
         uses: actions/github-script@v8
         with:
-          github-token: ${{secrets.GITHUB_TOKEN}}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           result-encoding: string
           script: |
             const pull_request = await github.rest.pulls.get({
@@ -41,17 +54,14 @@ jobs:
           role-to-assume: ${{ secrets.DEPLOY_ROLE_ARN }}
           aws-region: 'ap-northeast-1'
       - uses: hashicorp/setup-terraform@v3
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: 'pnpm'
-      - run: pnpm install
-      - run: pnpm build
       - id: tf-init
         run: terraform -chdir=${{ env.tf-dir }} init
+      - uses: actions/download-artifact@v4
+        with:
+          name: ${{ steps.command-args.outputs.id }}
+          path: ${{ env.tf-dir }}
       - id: tf-apply
-        run: terraform -chdir=${{ env.tf-dir }} apply -auto-approve -no-color
+        run: terraform -chdir=${{ env.tf-dir }} apply -auto-approve -no-color tfplan
         timeout-minutes: 20
         env:
           TF_VAR_twitter_api_key: ${{ secrets.TWITTER_API_KEY }}
