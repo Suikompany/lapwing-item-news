@@ -9,8 +9,19 @@ terraform {
   }
 }
 
+locals {
+  name  = "lapwing-item-news"
+  available_stage = ["dev", "prod"]
+}
+
 provider "aws" {
   region = "ap-northeast-1"
+
+  default_tags {
+    tags = {
+      name  = local.name
+    }
+  }
 }
 # GitHub Actions OIDCプロバイダー設定
 resource "aws_iam_openid_connect_provider" "github_actions" {
@@ -68,9 +79,9 @@ resource "aws_iam_role_policy" "github_actions_policy" {
         Effect = "Allow"
         Action = [
           "iam:ListRoles",
-          "iam:AttachRolePolicy",
           "iam:CreateRole",
           "iam:CreatePolicy",
+          "iam:AttachRolePolicy",
           "iam:PutRolePolicy",
           "iam:UpdateRole",
         ]
@@ -103,7 +114,48 @@ resource "aws_iam_role_policy" "github_actions_policy" {
           "ssm:GetParametersByPath",
         ]
         Resource = "*"
-      }
+      },
+      {
+        Effect = "Deny",
+        Action = [
+          "iam:Create*",
+          "lambda:Create*",
+          "s3:Create*",
+          "ssm:PutParameter",
+        ],
+        Resource = "*",
+        Condition = {
+          Null = {
+            "aws:RequestTag/name"  = "true"
+            "aws:RequestTag/stage" = "true"
+          }
+          StringNotEquals = {
+            "aws:RequestTag/name"  = local.name
+            "aws:RequestTag/stage" = local.available_stage
+          }
+        }
+      },
+      {
+        Effect = "Deny",
+        Action = [
+          "iam:Attach*",
+          "iam:Put*",
+          "iam:Update*",
+          "lambda:Update*",
+          "lambda:Add*",
+          "ssm:GetParameter*",
+        ],
+        Condition = {
+          Null = {
+            "aws:ResourceTag/name"  = "true"
+            "aws:ResourceTag/stage" = "true"
+          }
+          StringNotEquals = {
+            "aws:ResourceTag/name"  = local.name
+            "aws:ResourceTag/stage" = local.available_stage
+          }
+        }
+      },
     ]
   })
 }
