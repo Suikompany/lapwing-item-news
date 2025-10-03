@@ -100,7 +100,10 @@ jobs:
 
             *Pusher: \`${{ github.actor }}\`, Stage: \`${{ env.stage }}\`*
 
-            If you want to deploy this, please comment \`/deploy ${{ github.run_id }}\` on this PR.`;
+            If you want to deploy this, please comment the following text.
+            \`\`\`
+            /deploy ${{ github.run_id }}
+            \`\`\``;
 
             github.rest.issues.createComment({
               owner: context.repo.owner,
