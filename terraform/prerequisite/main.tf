@@ -10,15 +10,15 @@ terraform {
 }
 
 provider "aws" {
-  region  = "ap-northeast-1"
+  region = "ap-northeast-1"
 }
 # GitHub Actions OIDCプロバイダー設定
 resource "aws_iam_openid_connect_provider" "github_actions" {
-  url             = "https://token.actions.githubusercontent.com"
+  url = "https://token.actions.githubusercontent.com"
   # GitHubのOIDCの証明書のサムプリント https://github.blog/changelog/2022-01-13-github-actions-update-on-oidc-based-deployments-to-aws/
   thumbprint_list = ["6938fd4d98bab03faadb97b34396831e3780aea1"]
 
-  client_id_list  = ["sts.amazonaws.com"]
+  client_id_list = ["sts.amazonaws.com"]
 }
 
 # GitHub Actions 用ロール
@@ -35,7 +35,7 @@ resource "aws_iam_role" "github_actions_role" {
       }
       Condition = {
         StringEquals = {
-            "token.actions.githubusercontent.com:aud" = "sts.amazonaws.com"
+          "token.actions.githubusercontent.com:aud" = "sts.amazonaws.com"
         },
         StringLike = {
           "token.actions.githubusercontent.com:sub" = [
@@ -55,7 +55,7 @@ resource "aws_iam_role_policy" "github_actions_policy" {
     Version = "2012-10-17"
     Statement = [
       {
-        Effect   = "Allow"
+        Effect = "Allow"
         Action = [
           "s3:*"
         ]
@@ -65,7 +65,7 @@ resource "aws_iam_role_policy" "github_actions_policy" {
         ]
       },
       {
-        Effect   = "Allow"
+        Effect = "Allow"
         Action = [
           "iam:ListRoles",
           "iam:AttachRolePolicy",
@@ -95,7 +95,7 @@ resource "aws_iam_role_policy" "github_actions_policy" {
         Resource = "*"
       },
       {
-        Effect   = "Allow"
+        Effect = "Allow"
         Action = [
           "ssm:PutParameter",
           "ssm:GetParameter",

@@ -14,7 +14,7 @@ locals {
 data "archive_file" "lambda_function" {
   type        = "zip"
   source_dir  = "${local.dist_dir}/src"
-  excludes = ["${local.dist_dir}/out"]
+  excludes    = ["${local.dist_dir}/out"]
   output_path = "${local.dist_dir}/out/${local.lambda.file_name}.zip"
 }
 
@@ -76,7 +76,7 @@ resource "aws_iam_policy" "lambda_policy" {
         ],
         Resource = [
           "${aws_s3_bucket.bucket.arn}/*"
-          ]
+        ]
       },
       {
         Effect = "Allow"

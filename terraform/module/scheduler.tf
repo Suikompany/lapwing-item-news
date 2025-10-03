@@ -1,5 +1,5 @@
 locals {
-    scheduler = {
+  scheduler = {
     group_name       = "${local.name}-${local.stage}-scheduler-group"
     name             = "${local.name}-${local.stage}-scheduler"
     execution_role   = "${local.name}-${local.stage}-scheduler-role"

@@ -12,8 +12,8 @@ terraform {
 }
 
 variable "stage" {
-  type      = string
-  nullable  = false
+  type     = string
+  nullable = false
   validation {
     condition     = contains(["dev", "prod"], var.stage)
     error_message = "`stage` must be 'dev' or 'prod'."
@@ -22,7 +22,7 @@ variable "stage" {
 locals {
   aws_region = "ap-northeast-1"
 
-  name = "lapwing-item-news"
+  name  = "lapwing-item-news"
   stage = var.stage
 }
 

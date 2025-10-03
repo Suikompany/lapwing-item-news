@@ -1,10 +1,10 @@
 module "main" {
-  source = "../../module"
-  stage  = "dev"
-  twitter_access_token = var.twitter_access_token
+  source                      = "../../module"
+  stage                       = "dev"
+  twitter_access_token        = var.twitter_access_token
   twitter_access_token_secret = var.twitter_access_token_secret
-  twitter_api_key = var.twitter_api_key
-  twitter_api_secret = var.twitter_api_secret
+  twitter_api_key             = var.twitter_api_key
+  twitter_api_secret          = var.twitter_api_secret
 }
 
 variable "twitter_api_key" {
