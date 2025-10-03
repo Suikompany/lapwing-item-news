@@ -24,7 +24,10 @@ resource "aws_s3_bucket_policy" "bucket_policy" {
           "s3:PutObject",
           "s3:GetBucketPolicy"
         ]
-        Resource = "${aws_s3_bucket.bucket.arn}/*"
+        Resource = [
+          aws_s3_bucket.bucket.arn,
+          "${aws_s3_bucket.bucket.arn}/*",
+        ]
       }
     ]
   })
