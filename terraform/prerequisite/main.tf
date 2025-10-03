@@ -145,6 +145,7 @@ resource "aws_iam_role_policy" "github_actions_policy" {
           "lambda:Add*",
           "ssm:GetParameter*",
         ],
+        Resource = "*",
         Condition = {
           Null = {
             "aws:ResourceTag/name"  = "true"
