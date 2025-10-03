@@ -39,7 +39,7 @@ jobs:
         with:
           run-id: ${{ steps.command-args.outputs.run-id }}
           artifact-ids: ${{ steps.command-args.outputs.artifact-id }}
-          path: ${{ env.tf-dir }}
+          path: ${{ env.tf-dir }}/tfplan
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - id: get-branch
         uses: actions/github-script@v8
