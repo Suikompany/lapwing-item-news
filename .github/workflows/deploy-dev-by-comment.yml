@@ -40,7 +40,8 @@ jobs:
         with:
           run-id: ${{ steps.command-args.outputs.run-id }}
           artifact-ids: ${{ steps.command-args.outputs.artifact-id }}
-          path: ${{ env.tf-dir }}/tfplan
+          path: ${{ env.tf-dir }}
+          merge-multiple: true # artifactの内容物をpath直下に配置させる
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - id: get-branch
         uses: actions/github-script@v8
@@ -65,7 +66,7 @@ jobs:
       - id: tf-init
         run: terraform -chdir=${{ env.tf-dir }} init
       - id: tf-apply
-        run: terraform -chdir=${{ env.tf-dir }} apply -auto-approve -no-color ${{ steps.artifact.outputs.download-path}}
+        run: terraform -chdir=${{ env.tf-dir }} apply -auto-approve -no-color ${{ steps.artifact.outputs.download-path}}/tfplan
         timeout-minutes: 20
         env:
           TF_VAR_twitter_api_key: ${{ secrets.TWITTER_API_KEY }}
