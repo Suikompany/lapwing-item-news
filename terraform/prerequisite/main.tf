@@ -10,7 +10,7 @@ terraform {
 }
 
 locals {
-  name  = "lapwing-item-news"
+  name            = "lapwing-item-news"
   available_stage = ["dev", "prod"]
 }
 
@@ -19,7 +19,7 @@ provider "aws" {
 
   default_tags {
     tags = {
-      name  = local.name
+      name = local.name
     }
   }
 }
@@ -78,22 +78,38 @@ resource "aws_iam_role_policy" "github_actions_policy" {
       {
         Effect = "Allow"
         Action = [
-          "iam:ListRoles",
+          "iam:List*",
+          "iam:GetRole",
+          "iam:GetPolicy",
+          "iam:GetPolicyVersion",
           "iam:CreateRole",
           "iam:CreatePolicy",
           "iam:AttachRolePolicy",
           "iam:PutRolePolicy",
           "iam:UpdateRole",
+          "iam:TagRole",
+          "iam:UntagRole",
+          "iam:TagPolicy",
+          "iam:UntagPolicy",
+          "iam:PassRole",
+          "iam:DeleteRole",
+          "iam:DeletePolicy",
+          "iam:DetachRolePolicy",
         ]
         Resource = "*"
       },
       {
         Effect = "Allow"
         Action = [
+          "lambda:List*",
+          "lambda:GetFunction*",
           "lambda:CreateFunction",
           "lambda:UpdateFunctionCode",
           "lambda:UpdateFunctionConfiguration",
+          "lambda:TagResource",
+          "lambda:UntagResource",
           "lambda:AddPermission",
+          "lambda:DeleteFunction",
         ]
         Resource = "*"
       },
@@ -101,17 +117,40 @@ resource "aws_iam_role_policy" "github_actions_policy" {
         Effect = "Allow"
         Action = [
           "s3:ListBucket",
+          "s3:GetBucket*",
+          "s3:Get*Configuration*",
+          "s3:GetBucketTagging",
           "s3:CreateBucket",
+          "s3:PutBucketTagging",
+          "s3:PutBucketPolicy",
+          "s3:DeleteBucket",
         ]
         Resource = "*"
       },
       {
         Effect = "Allow"
         Action = [
-          "ssm:PutParameter",
+          "ssm:*Tags*Resource",
           "ssm:GetParameter",
           "ssm:GetParameters",
           "ssm:GetParametersByPath",
+          "ssm:DescribeParameters",
+          "ssm:PutParameter",
+          "ssm:DeleteParameter*",
+        ]
+        Resource = "*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "scheduler:List*",
+          "scheduler:GetScheduleGroup",
+          "scheduler:GetSchedule",
+          "scheduler:CreateScheduleGroup",
+          "scheduler:CreateSchedule",
+          "scheduler:UpdateSchedule",
+          "scheduler:TagResource",
+          "scheduler:UntagResource",
         ]
         Resource = "*"
       },
@@ -119,9 +158,15 @@ resource "aws_iam_role_policy" "github_actions_policy" {
         Effect = "Deny",
         Action = [
           "iam:Create*",
+          "iam:TagRole",
+          "iam:TagPolicy",
           "lambda:Create*",
-          "s3:Create*",
+          "lambda:TagResource",
           "ssm:PutParameter",
+          "ssm:DeleteParameter*",
+          "ssm:AddTagsToResource",
+          "scheduler:CreateScheduleGroup",
+          "scheduler:TagResource",
         ],
         Resource = "*",
         Condition = {
@@ -144,6 +189,11 @@ resource "aws_iam_role_policy" "github_actions_policy" {
           "lambda:Update*",
           "lambda:Add*",
           "ssm:GetParameter*",
+          "ssm:*Tags*Resource",
+          "ssm:DeleteParameter*",
+          "scheduler:CreateSchedule",
+          "scheduler:Update*",
+          "scheduler:UntagResource",
         ],
         Resource = "*",
         Condition = {
