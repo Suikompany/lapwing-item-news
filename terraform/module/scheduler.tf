@@ -1,9 +1,9 @@
 locals {
   scheduler = {
-    group_name       = "${local.name}-${local.stage}-scheduler-group"
-    name             = "${local.name}-${local.stage}-scheduler"
-    execution_role   = "${local.name}-${local.stage}-scheduler-role"
-    execution_policy = "${local.name}-${local.stage}-scheduler-policy"
+    group_name       = "${local.project}-${local.stage}-scheduler-group"
+    name             = "${local.project}-${local.stage}-scheduler"
+    execution_role   = "${local.project}-${local.stage}-scheduler-role"
+    execution_policy = "${local.project}-${local.stage}-scheduler-policy"
   }
 }
 

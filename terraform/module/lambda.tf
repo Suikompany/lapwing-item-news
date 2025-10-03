@@ -8,9 +8,9 @@ locals {
 
   dist_dir = var.dist_dir
   lambda = {
-    function_name    = "${local.name}-${local.stage}-lambda"
-    execution_role   = "${local.name}-${local.stage}-lambda-role"
-    execution_policy = "${local.name}-${local.stage}-lambda-policy"
+    function_name    = "${local.project}-${local.stage}-lambda"
+    execution_role   = "${local.project}-${local.stage}-lambda-role"
+    execution_policy = "${local.project}-${local.stage}-lambda-policy"
     runtime          = "nodejs22.x"
     file_name        = "index"
     handler          = "handler"

@@ -1,6 +1,6 @@
 locals {
   s3 = {
-    bucket = "${local.name}-${local.stage}-bucket"
+    bucket = "${local.project}-${local.stage}-bucket"
   }
 }
 

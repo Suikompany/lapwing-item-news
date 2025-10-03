@@ -10,7 +10,7 @@ terraform {
 }
 
 locals {
-  name            = "lapwing-item-news"
+  project         = "lapwing-item-news"
   available_stage = ["dev", "prod"]
 }
 
@@ -19,7 +19,7 @@ provider "aws" {
 
   default_tags {
     tags = {
-      name = local.name
+      project = local.project
     }
   }
 }
@@ -171,12 +171,12 @@ resource "aws_iam_role_policy" "github_actions_policy" {
         Resource = "*",
         Condition = {
           Null = {
-            "aws:RequestTag/name"  = "true"
-            "aws:RequestTag/stage" = "true"
+            "aws:RequestTag/project" = "true"
+            "aws:RequestTag/stage"   = "true"
           }
           StringNotEquals = {
-            "aws:RequestTag/name"  = local.name
-            "aws:RequestTag/stage" = local.available_stage
+            "aws:RequestTag/project" = local.project
+            "aws:RequestTag/stage"   = local.available_stage
           }
         }
       },
@@ -198,12 +198,12 @@ resource "aws_iam_role_policy" "github_actions_policy" {
         Resource = "*",
         Condition = {
           Null = {
-            "aws:ResourceTag/name"  = "true"
-            "aws:ResourceTag/stage" = "true"
+            "aws:ResourceTag/project" = "true"
+            "aws:ResourceTag/stage"   = "true"
           }
           StringNotEquals = {
-            "aws:ResourceTag/name"  = local.name
-            "aws:ResourceTag/stage" = local.available_stage
+            "aws:ResourceTag/project" = local.project
+            "aws:ResourceTag/stage"   = local.available_stage
           }
         }
       },

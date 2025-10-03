@@ -22,16 +22,16 @@ variable "stage" {
 locals {
   aws_region = "ap-northeast-1"
 
-  name  = "lapwing-item-news"
-  stage = var.stage
+  project = "lapwing-item-news"
+  stage   = var.stage
 }
 
 provider "aws" {
   region = local.aws_region
   default_tags {
     tags = {
-      name  = local.name
-      stage = local.stage
+      project = local.project
+      stage   = local.stage
     }
   }
 }

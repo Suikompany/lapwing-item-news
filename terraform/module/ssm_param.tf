@@ -1,10 +1,10 @@
 locals {
   ssm_param = {
     twitter = {
-      api_key             = "/${local.name}/${local.stage}/Twitter/ApiKey"
-      api_secret          = "/${local.name}/${local.stage}/Twitter/ApiSecret"
-      access_token        = "/${local.name}/${local.stage}/Twitter/AccessToken"
-      access_token_secret = "/${local.name}/${local.stage}/Twitter/AccessTokenSecret"
+      api_key             = "/${local.project}/${local.stage}/Twitter/ApiKey"
+      api_secret          = "/${local.project}/${local.stage}/Twitter/ApiSecret"
+      access_token        = "/${local.project}/${local.stage}/Twitter/AccessToken"
+      access_token_secret = "/${local.project}/${local.stage}/Twitter/AccessTokenSecret"
     }
   }
 }
