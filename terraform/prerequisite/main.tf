@@ -67,6 +67,7 @@ resource "aws_iam_role_policy" "github_actions_policy" {
       {
         Effect   = "Allow"
         Action = [
+          "iam:ListRoles",
           "iam:AttachRolePolicy",
           "iam:CreateRole",
           "iam:CreatePolicy",
@@ -88,6 +89,7 @@ resource "aws_iam_role_policy" "github_actions_policy" {
       {
         Effect = "Allow"
         Action = [
+          "s3:ListBucket",
           "s3:CreateBucket",
         ]
         Resource = "*"
