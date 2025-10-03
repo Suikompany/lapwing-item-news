@@ -91,7 +91,7 @@ jobs:
 
             *Pusher: \`${{ github.actor }}\`, Stage: \`${{ env.stage }}\`*
 
-            If you want to deploy this, please comment \`/deploy ${{steps.artifact.outputs.artifact-id }}\` on this PR.`;
+            If you want to deploy this, please comment \`/deploy ${{ github.run_id }} ${{steps.artifact.outputs.artifact-id }}\` on this PR.`;
 
             github.rest.issues.createComment({
               owner: context.repo.owner,
