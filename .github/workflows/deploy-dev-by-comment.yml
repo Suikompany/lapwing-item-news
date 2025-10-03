@@ -35,7 +35,8 @@ jobs:
             }
             core.setOutput("run-id", match[1]);
             core.setOutput("artifact-id", match[2]);
-      - uses: actions/download-artifact@v4
+      - id: artifact
+        uses: actions/download-artifact@v4
         with:
           run-id: ${{ steps.command-args.outputs.run-id }}
           artifact-ids: ${{ steps.command-args.outputs.artifact-id }}
@@ -64,7 +65,7 @@ jobs:
       - id: tf-init
         run: terraform -chdir=${{ env.tf-dir }} init
       - id: tf-apply
-        run: terraform -chdir=${{ env.tf-dir }} apply -auto-approve -no-color tfplan
+        run: terraform -chdir=${{ env.tf-dir }} apply -auto-approve -no-color ${{ steps.artifact.outputs.download-path}}
         timeout-minutes: 20
         env:
           TF_VAR_twitter_api_key: ${{ secrets.TWITTER_API_KEY }}
