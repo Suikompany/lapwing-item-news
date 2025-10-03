@@ -17,7 +17,7 @@ locals {
   }
 }
 
-data "archive_file" "lambda_function" {
+resource "archive_file" "lambda_function" {
   type        = "zip"
   source_dir  = "${local.dist_dir}/src"
   excludes    = ["*.zip"]
@@ -26,8 +26,8 @@ data "archive_file" "lambda_function" {
 
 resource "aws_lambda_function" "lambda_function" {
   function_name    = local.lambda.function_name
-  filename         = data.archive_file.lambda_function.output_path
-  source_code_hash = data.archive_file.lambda_function.output_base64sha256
+  filename         = archive_file.lambda_function.output_path
+  source_code_hash = archive_file.lambda_function.output_base64sha256
   handler          = "${local.lambda.file_name}.${local.lambda.handler}"
   runtime          = local.lambda.runtime
   timeout          = 20
