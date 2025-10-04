@@ -84,6 +84,7 @@ resource "aws_iam_role_policy" "github_actions_policy" {
           "iam:GetPolicyVersion",
           "iam:CreateRole",
           "iam:CreatePolicy",
+          "iam:CreatePolicyVersion",
           "iam:AttachRolePolicy",
           "iam:PutRolePolicy",
           "iam:UpdateRole",
@@ -157,7 +158,8 @@ resource "aws_iam_role_policy" "github_actions_policy" {
       {
         Effect = "Deny",
         Action = [
-          "iam:Create*",
+          "iam:CreateRole",
+          "iam:CreatePolicy",
           "iam:TagRole",
           "iam:TagPolicy",
           "lambda:Create*",
