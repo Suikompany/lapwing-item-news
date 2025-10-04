@@ -30,7 +30,7 @@ resource "aws_lambda_function" "lambda_function" {
   source_code_hash = archive_file.lambda_function.output_base64sha256
   handler          = "${local.lambda.file_name}.${local.lambda.handler}"
   runtime          = local.lambda.runtime
-  timeout          = 20
+  timeout          = 180
 
   architectures = ["arm64"]
 
