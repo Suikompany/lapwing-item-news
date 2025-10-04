@@ -17,6 +17,8 @@ const createSdkStream = (str: string) => {
   return sdkStreamMixin(stream);
 };
 
+const bucket = "lapwing-item-news-bucket";
+
 beforeEach(() => {
   s3Mock.reset();
 });
@@ -32,7 +34,7 @@ describe("getScrapedData", () => {
 
     s3Mock.on(GetObjectCommand).resolves({ Body: sdkStream });
 
-    const result = await getScrapedData();
+    const result = await getScrapedData(bucket);
     expect(result).toEqual({
       updated_at: "2024-01-01T00:00:00.000Z",
       product_ids: [1, 2, 3],
@@ -42,7 +44,7 @@ describe("getScrapedData", () => {
   it("throws error if Body is undefined", async () => {
     s3Mock.on(GetObjectCommand).resolves({ Body: undefined });
 
-    await expect(getScrapedData()).rejects.toThrow(
+    await expect(getScrapedData(bucket)).rejects.toThrow(
       "No data in scraped_data.json",
     );
   });
@@ -53,7 +55,7 @@ describe("putData", () => {
     s3Mock.on(PutObjectCommand).resolves({});
     const date = new Date("2024-01-01T00:00:00.000Z");
     const productIds = [1, 2, 3];
-    await putScrapedData(date, productIds);
+    await putScrapedData(bucket, date, productIds);
 
     expect(
       s3Mock.commandCalls(PutObjectCommand, {
@@ -77,7 +79,7 @@ describe("putLog", () => {
       { product_id: 123, tweet_id: "abc" },
       { product_id: 456, tweet_id: null },
     ];
-    await putLog(date, newProducts);
+    await putLog(bucket, date, newProducts);
 
     expect(
       s3Mock.commandCalls(PutObjectCommand, {

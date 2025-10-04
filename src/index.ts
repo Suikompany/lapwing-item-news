@@ -5,7 +5,9 @@ import { createMultipleTweets, createTwitterClient } from "./twitter/twitter";
 import { getScrapedData, putScrapedData, putLog } from "./db/s3";
 import { fetchTwitterCredentials } from "./param/ssmParam";
 import { truncateUnderMin } from "./util/truncateUnderMin";
-import { ALLOW_TWEET } from "./param/envParam";
+import { getEnv } from "./param/envParam";
+
+const env = getEnv(process.env);
 
 export const handler: Handler = async (event, context) => {
   const startScrapedAt = truncateUnderMin(new Date());
@@ -14,7 +16,9 @@ export const handler: Handler = async (event, context) => {
   const productList = await scrapeProductList();
 
   // 前回の商品一覧を取得
-  const { product_ids: prevProductIdList } = await getScrapedData();
+  const { product_ids: prevProductIdList } = await getScrapedData(
+    env.BUCKET_NAME,
+  );
   console.debug("prevProductIdList:", prevProductIdList);
 
   // 今回新しく見つけた商品一覧を求める
@@ -30,6 +34,7 @@ export const handler: Handler = async (event, context) => {
 
   // 今回の商品一覧で更新
   await putScrapedData(
+    env.BUCKET_NAME,
     startScrapedAt,
     productList.map(({ id }) => id),
   );
@@ -46,6 +51,7 @@ export const handler: Handler = async (event, context) => {
 
   // ログを保存
   await putLog(
+    env.BUCKET_NAME,
     startScrapedAt,
     newProductList.map((product, index) => ({
       product_id: product.id,
@@ -63,7 +69,7 @@ const make_tweets = async (
     hashtags: `#${string}`[];
   }[],
 ) => {
-  if (!ALLOW_TWEET) return [];
+  if (!env.ALLOW_TWEET) return [];
 
   const twitterClient = createTwitterClient({
     tokens: await fetchTwitterCredentials(),

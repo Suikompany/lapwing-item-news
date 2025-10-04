@@ -35,6 +35,14 @@ resource "aws_lambda_function" "lambda_function" {
   architectures = ["arm64"]
 
   role = aws_iam_role.lambda_role.arn
+
+  environment {
+    variables = {
+      STAGE       = local.stage
+      BUCKET_NAME = aws_s3_bucket.bucket.bucket
+      ALLOW_TWEET = "false"
+    }
+  }
 }
 
 resource "aws_iam_role" "lambda_role" {

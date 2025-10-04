@@ -23,8 +23,6 @@ import {
   }
 */
 
-const bucket = "lapwing-item-news-bucket" as const;
-
 const scrapedDataKey = "scraped_data.json" as const;
 const scrapingLogKey = (
   date: Date,
@@ -60,7 +58,7 @@ type LogJson = v.InferOutput<typeof scrapingLogSchema>;
 
 const s3Client = new S3Client({});
 
-export const getScrapedData = async () => {
+export const getScrapedData = async (bucket: string) => {
   const { Body: body } = await s3Client.send(
     new GetObjectCommand({
       Bucket: bucket,
@@ -78,6 +76,7 @@ export const getScrapedData = async () => {
 };
 
 export const putScrapedData = async (
+  bucket: string,
   date: Date,
   productIds: ScrapedDataJson["product_ids"],
 ) => {
@@ -97,6 +96,7 @@ export const putScrapedData = async (
 };
 
 export const putLog = async (
+  bucket: string,
   date: Date,
   newProducts: LogJson["new_products"],
 ) => {
