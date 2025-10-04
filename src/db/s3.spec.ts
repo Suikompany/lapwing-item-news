@@ -4,6 +4,7 @@ import {
   S3Client,
   PutObjectCommand,
   GetObjectCommand,
+  NoSuchKey,
 } from "@aws-sdk/client-s3";
 import { Readable } from "node:stream";
 import { getScrapedData, putScrapedData, putLog } from "./s3";
@@ -41,12 +42,20 @@ describe("getScrapedData", () => {
     });
   });
 
-  it("throws error if Body is undefined", async () => {
+  it("returns undefined if Body is undefined", async () => {
     s3Mock.on(GetObjectCommand).resolves({ Body: undefined });
 
-    await expect(getScrapedData(bucket)).rejects.toThrow(
-      "No data in scraped_data.json",
-    );
+    const result = await getScrapedData(bucket);
+    expect(result).toBeUndefined();
+  });
+
+  it("returns undefined if NoSuchKey error is thrown", async () => {
+    s3Mock
+      .on(GetObjectCommand)
+      .rejects(new NoSuchKey({ message: "", $metadata: {} }));
+
+    const result = await getScrapedData(bucket);
+    expect(result).toBeUndefined();
   });
 });
 

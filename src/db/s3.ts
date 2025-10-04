@@ -3,6 +3,7 @@ import {
   S3Client,
   PutObjectCommand,
   GetObjectCommand,
+  NoSuchKey,
 } from "@aws-sdk/client-s3";
 
 // S3 に保存するファイル形式
@@ -59,20 +60,23 @@ type LogJson = v.InferOutput<typeof scrapingLogSchema>;
 const s3Client = new S3Client({});
 
 export const getScrapedData = async (bucket: string) => {
-  const { Body: body } = await s3Client.send(
-    new GetObjectCommand({
-      Bucket: bucket,
-      Key: scrapedDataKey,
-    }),
-  );
+  try {
+    const { Body: body } = await s3Client.send(
+      new GetObjectCommand({
+        Bucket: bucket,
+        Key: scrapedDataKey,
+      }),
+    );
 
-  if (!body) {
-    throw new Error(`No data in ${scrapedDataKey}`);
+    if (!body) return undefined;
+
+    const rawJson = await body.transformToString();
+
+    return await v.parseAsync(scrapedDataSchema, rawJson);
+  } catch (e: unknown) {
+    if (e instanceof NoSuchKey) return undefined;
+    throw e;
   }
-
-  const rawJson = await body.transformToString();
-
-  return await v.parseAsync(scrapedDataSchema, rawJson);
 };
 
 export const putScrapedData = async (

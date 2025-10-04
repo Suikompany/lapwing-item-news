@@ -16,9 +16,8 @@ export const handler: Handler = async (event, context) => {
   const productList = await scrapeProductList();
 
   // 前回の商品一覧を取得
-  const { product_ids: prevProductIdList } = await getScrapedData(
-    env.BUCKET_NAME,
-  );
+  const prevScrapedData = await getScrapedData(env.BUCKET_NAME);
+  const prevProductIdList = prevScrapedData?.product_ids ?? [];
   console.debug("prevProductIdList:", prevProductIdList);
 
   // 今回新しく見つけた商品一覧を求める
