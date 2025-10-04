@@ -2,17 +2,20 @@ import { build } from "esbuild";
 import path from "node:path";
 
 const distDir = "./dist";
+const buildTimestamp = new Date().toISOString();
 
 await build({
   entryPoints: ["./src/index.ts"],
   outdir: `${distDir}/src`,
   platform: "node",
+  target: ["node22"],
   format: "esm",
   bundle: true,
   minify: true,
   outExtension: { ".js": ".mjs" },
   banner: {
-    js: "import{createRequire}from'module';const require=createRequire(import.meta.url);",
+    js: `// build timestamp: ${buildTimestamp}\nimport { createRequire } from 'module'; const require = createRequire(import.meta.url);`,
+
   },
   define: {
     'import.meta.vitest': 'undefined',
