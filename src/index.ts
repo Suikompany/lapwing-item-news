@@ -68,7 +68,12 @@ const make_tweets = async (
     hashtags: `#${string}`[];
   }[],
 ) => {
-  if (!env.ALLOW_TWEET) return [];
+  if (!env.ALLOW_TWEET) {
+    console.info(
+      "Skipping tweet creation due to the environment variable `ALLOW_TWEET`.",
+    );
+    return [];
+  }
 
   const twitterClient = createTwitterClient({
     tokens: await fetchTwitterCredentials(),
