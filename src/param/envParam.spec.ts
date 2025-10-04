@@ -34,6 +34,8 @@ describe("envParam", async () => {
   it("should throw an error if BUCKET_NAME is missing", () => {
     process.env.ALLOW_TWEET = "true";
 
-    expect(() => getEnv(process.env)).toThrowError(/BUCKET_NAME/);
+    expect(() => getEnv(process.env)).toThrowError(
+      'Invalid key: Expected "BUCKET_NAME" but received undefined',
+    );
   });
 });
