@@ -1,12 +1,22 @@
 import { ApiRequestError, ApiResponseError, TwitterApi } from "twitter-api-v2";
-import type { SendTweetV2Params, TweetV2PostTweetResult } from "twitter-api-v2";
+import type {
+  SendTweetV2Params,
+  TweetV2PostTweetResult,
+  TwitterApiReadWrite,
+} from "twitter-api-v2";
 
-import { fetchTwitterApiTokens } from "../param/ssmParam";
 import { buildProductUrl } from "../booth/products";
 
-const initTwitterClient = async () => {
-  const tokens = await fetchTwitterApiTokens();
-
+export const createTwitterClient = ({
+  tokens,
+}: {
+  tokens: {
+    apiKey: string;
+    apiSecret: string;
+    accessToken: string;
+    accessTokenSecret: string;
+  };
+}) => {
   const baseClient = new TwitterApi({
     appKey: tokens.apiKey,
     appSecret: tokens.apiSecret,
@@ -19,10 +29,9 @@ const initTwitterClient = async () => {
   return rwClientV2;
 };
 
-const client = await initTwitterClient();
-
 type CreateMultipleTweets = (
-  params: readonly Parameters<CreateTweet>[0][],
+  client: TwitterApiReadWrite["v2"],
+  params: readonly Parameters<CreateTweet>[1][],
 ) => Promise<
   (
     | {
@@ -40,10 +49,13 @@ type CreateMultipleTweets = (
     | { type: "error"; error: Error }
   )[]
 >;
-export const createMultipleTweets: CreateMultipleTweets = async (params) => {
+export const createMultipleTweets: CreateMultipleTweets = async (
+  client,
+  params,
+) => {
   const tweetResultList = await Promise.allSettled(
     params.map(async (param) => {
-      const result = await createTweet(param);
+      const result = await createTweet(client, param);
       return result;
     }),
   );
@@ -84,11 +96,14 @@ export const createMultipleTweets: CreateMultipleTweets = async (params) => {
   return results;
 };
 
-type CreateTweet = (params: {
-  productName: string;
-  productId: number;
-  hashtags: `#${string}`[];
-}) => Promise<{
+type CreateTweet = (
+  client: TwitterApiReadWrite["v2"],
+  params: {
+    productName: string;
+    productId: number;
+    hashtags: `#${string}`[];
+  },
+) => Promise<{
   id: string;
   rateLimit:
     | {
@@ -99,13 +114,12 @@ type CreateTweet = (params: {
       }
     | undefined;
 }>;
-export const createTweet: CreateTweet = async ({
-  productName,
-  productId,
-  hashtags,
-}) => {
+export const createTweet: CreateTweet = async (
+  client,
+  { productName, productId, hashtags },
+) => {
   const text = buildTweetText({ productName, productId, hashtags });
-  const result = await sendTweet({ text });
+  const result = await sendTweet({ client, text });
   return { id: result.data.id, rateLimit: result.rateLimit };
 };
 
@@ -127,6 +141,7 @@ const buildTweetText: BuildTweetText = ({
 };
 
 type SendTweet = (params: {
+  client: TwitterApiReadWrite["v2"];
   text: string;
 }) => Promise<{
   data: {
@@ -142,7 +157,7 @@ type SendTweet = (params: {
       }
     | undefined;
 }>;
-const sendTweet: SendTweet = async ({ text }) => {
+const sendTweet: SendTweet = async ({ client, text }) => {
   const payload: SendTweetV2Params = {
     text: text,
   };

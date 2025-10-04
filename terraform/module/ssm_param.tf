@@ -1,3 +1,14 @@
+locals {
+  ssm_param = {
+    twitter = {
+      api_key             = "/${local.project}/${local.stage}/Twitter/ApiKey"
+      api_secret          = "/${local.project}/${local.stage}/Twitter/ApiSecret"
+      access_token        = "/${local.project}/${local.stage}/Twitter/AccessToken"
+      access_token_secret = "/${local.project}/${local.stage}/Twitter/AccessTokenSecret"
+    }
+  }
+}
+
 variable "twitter_api_key" {
   type      = string
   nullable  = false
@@ -23,18 +34,6 @@ variable "twitter_access_token_secret" {
   ephemeral = true
 }
 
-resource "aws_ssm_parameter" "latest_product_id" {
-  name           = local.ssm_param.latest_product_id
-  type           = "String"
-  insecure_value = local.base_product_id
-
-  lifecycle {
-    ignore_changes = [
-      insecure_value
-    ]
-  }
-
-}
 
 resource "aws_ssm_parameter" "twitter_access_token" {
   name             = local.ssm_param.twitter.access_token

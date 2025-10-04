@@ -4,15 +4,6 @@ import { createMultipleTweets, createTweet } from "./twitter";
 
 vi.mock("twitter-api-v2");
 
-vi.mock("../param/ssmParam", () => ({
-  fetchTwitterApiTokens: vi.fn().mockResolvedValue({
-    apiKey: "testApiKey",
-    apiSecret: "testApiSecret",
-    accessToken: "testAccessToken",
-    accessTokenSecret: "testAccessTokenSecret",
-  }),
-}));
-
 afterEach(() => {
   vi.clearAllMocks();
 });
@@ -32,7 +23,7 @@ describe("createMultipleTweets", () => {
 
     twitterPostMock.mockImplementation(postMockImpl);
 
-    const result = await createMultipleTweets([
+    const result = await createMultipleTweets(client, [
       {
         productName: "Product",
         productId: 1,
@@ -80,7 +71,7 @@ describe("createMultipleTweets", () => {
 
     twitterPostMock.mockImplementation(postMockImpl);
 
-    const result = await createMultipleTweets([
+    const result = await createMultipleTweets(client, [
       {
         productName: "Product1",
         productId: 1,
@@ -150,7 +141,7 @@ describe("createMultipleTweets", () => {
 
     twitterPostMock.mockImplementation(postMockImpl);
 
-    const result = await createMultipleTweets([
+    const result = await createMultipleTweets(client, [
       {
         productName: "Product1",
         productId: 1,
@@ -220,7 +211,7 @@ describe("createTweet", () => {
 
     twitterPostMock.mockImplementation(postMockImpl);
 
-    const result = await createTweet({
+    const result = await createTweet(client, {
       productName: "Product",
       productId: 1,
       hashtags: ["#tag1", "#tag2"],
@@ -248,7 +239,7 @@ describe("createTweet", () => {
 
     twitterPostMock.mockImplementation(postMockImpl);
 
-    const result = await createTweet({
+    const result = await createTweet(client, {
       productName: "Product",
       productId: 1,
       hashtags: [],
@@ -273,7 +264,7 @@ describe("createTweet", () => {
 
     twitterPostMock.mockImplementation(postMockImpl);
 
-    const result = createTweet({
+    const result = createTweet(client, {
       productName: "Product",
       productId: 1,
       hashtags: ["#tag1", "#tag2"],
@@ -300,7 +291,7 @@ describe("createTweet", () => {
 
     twitterPostMock.mockImplementation(postMockImpl);
 
-    const result = createTweet({
+    const result = createTweet(client, {
       productName: "Product",
       productId: 1,
       hashtags: ["#tag1", "#tag2"],
@@ -328,7 +319,7 @@ describe("createTweet", () => {
 
     twitterPostMock.mockImplementation(postMockImpl);
 
-    const result = createTweet({
+    const result = createTweet(client, {
       productName: "Product",
       productId: 1,
       hashtags: ["#tag1", "#tag2"],
@@ -354,7 +345,7 @@ describe("createTweet", () => {
 
     twitterPostMock.mockImplementation(postMockImpl);
 
-    const result = createTweet({
+    const result = createTweet(client, {
       productName: "Product",
       productId: 1,
       hashtags: ["#tag1", "#tag2"],
@@ -381,7 +372,7 @@ describe("createTweet", () => {
 
     twitterPostMock.mockImplementation(postMockImpl);
 
-    const result = createTweet({
+    const result = createTweet(client, {
       productName: "Product",
       productId: 1,
       hashtags: ["#tag1", "#tag2"],
