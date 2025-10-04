@@ -17,17 +17,18 @@ locals {
   }
 }
 
-resource "archive_file" "lambda_function" {
+data "archive_file" "lambda_zip" {
   type        = "zip"
   source_dir  = "${local.dist_dir}/src"
   excludes    = ["*.zip"]
   output_path = "${local.dist_dir}/${local.lambda.file_name}.zip"
+  output_file_mode = "0644"
 }
 
 resource "aws_lambda_function" "lambda_function" {
   function_name    = local.lambda.function_name
-  filename         = archive_file.lambda_function.output_path
-  source_code_hash = archive_file.lambda_function.output_base64sha256
+  filename         = data.archive_file.lambda_zip.output_path
+  source_code_hash = data.archive_file.lambda_zip.output_base64sha256
   handler          = "${local.lambda.file_name}.${local.lambda.handler}"
   runtime          = local.lambda.runtime
   timeout          = 180
