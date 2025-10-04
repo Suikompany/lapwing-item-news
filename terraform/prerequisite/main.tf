@@ -111,6 +111,12 @@ resource "aws_iam_role_policy" "github_actions_policy" {
           "lambda:UntagResource",
           "lambda:AddPermission",
           "lambda:DeleteFunction",
+          "logs:ListLogGroups",
+          "logs:DescribeLogGroups",
+          "logs:CreateLogGroup",
+          "logs:PutRetentionPolicy",
+          "logs:DeleteLog*",
+          "logs:*Tag*",
         ]
         Resource = "*"
       },
@@ -164,6 +170,8 @@ resource "aws_iam_role_policy" "github_actions_policy" {
           "iam:TagPolicy",
           "lambda:Create*",
           "lambda:TagResource",
+          "logs:CreateLogGroup",
+          "logs:Tag*",
           "ssm:PutParameter",
           "ssm:DeleteParameter*",
           "ssm:AddTagsToResource",

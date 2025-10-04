@@ -44,6 +44,11 @@ resource "aws_lambda_function" "lambda_function" {
       ALLOW_TWEET = "false"
     }
   }
+
+  logging_config {
+    log_format = "Text"
+    log_group = aws_cloudwatch_log_group.lambda_log_group.name
+  }
 }
 
 resource "aws_iam_role" "lambda_role" {
@@ -110,4 +115,9 @@ resource "aws_iam_policy" "lambda_policy" {
       },
     ]
   })
+}
+
+resource "aws_cloudwatch_log_group" "lambda_log_group" {
+  name = "/aws/lambda/${local.lambda.function_name}"
+  retention_in_days = 14
 }
