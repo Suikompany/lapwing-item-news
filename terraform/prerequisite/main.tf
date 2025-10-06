@@ -104,6 +104,7 @@ resource "aws_iam_role_policy" "github_actions_policy" {
         Action = [
           "lambda:List*",
           "lambda:GetFunction*",
+          "lambda:GetPolicy",
           "lambda:CreateFunction",
           "lambda:UpdateFunctionCode",
           "lambda:UpdateFunctionConfiguration",
@@ -111,6 +112,7 @@ resource "aws_iam_role_policy" "github_actions_policy" {
           "lambda:UntagResource",
           "lambda:AddPermission",
           "lambda:DeleteFunction",
+          "lambda:RemovePermission",
           "logs:ListLogGroups",
           "logs:DescribeLogGroups",
           "logs:CreateLogGroup",
