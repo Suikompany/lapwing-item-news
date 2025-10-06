@@ -14,20 +14,21 @@ export const handler: Handler = async (event, context) => {
 
   // 今回の商品一覧（最新が1番目）を取得
   const productList = await scrapeProductList();
+  console.debug("productList:", JSON.stringify(productList, null, 2));
 
   // 前回の商品一覧を取得
   const prevScrapedData = await getScrapedData(env.BUCKET_NAME);
   const prevProductIdList = prevScrapedData?.product_ids ?? [];
   console.debug("prevProductIdList:", prevProductIdList);
 
-  // 今回新しく見つけた商品一覧を求める
-  const newProductList = productList.filter(
+  // 差分を求める
+  const diff = productList.filter(
     (product) => !prevProductIdList.includes(product.id),
   );
-  console.debug("newProducts:", JSON.stringify(newProductList, null, 2));
+  console.debug("diff:", JSON.stringify(diff, null, 2));
 
   // 新しい商品が一つもない場合は早期終了
-  if (newProductList.length < 1) {
+  if (diff.length < 1) {
     return;
   }
 
@@ -39,12 +40,14 @@ export const handler: Handler = async (event, context) => {
   );
 
   // 時系列通りにツイートするため、公開日時の昇順にしたパラメータを作成
-  const tweetParams = newProductList.toReversed().map((product) => ({
-    productName: product.name,
-    productId: product.id,
-    hashtags: [],
-    // hashtags: ["#Lapwing"], 試験運用中はタグなし
-  }));
+  const tweetParams = diff
+    .map((product) => ({
+      productName: product.name,
+      productId: product.id,
+      hashtags: [],
+      // hashtags: ["#Lapwing"], 試験運用中はタグなし
+    }))
+    .reverse();
 
   const tweetIdList = await make_tweets(tweetParams);
 
@@ -52,7 +55,7 @@ export const handler: Handler = async (event, context) => {
   await putLog(
     env.BUCKET_NAME,
     startScrapedAt,
-    newProductList.map((product, index) => ({
+    diff.map((product, index) => ({
       product_id: product.id,
       tweet_id: tweetIdList.at(index) ?? null,
     })),
@@ -83,12 +86,14 @@ const make_tweets = async (
   console.debug("tweetResults:", JSON.stringify(tweetResultList, null, 2));
 
   // 公開日時が降順の newProductIdList に併せて tweetIdList も降順にする
-  const tweetIdList = tweetResultList.toReversed().map((result) => {
-    if (result.type === "success") {
-      return result.id;
-    }
-    return null;
-  });
+  const tweetIdList = tweetResultList
+    .map((result) => {
+      if (result.type === "success") {
+        return result.id;
+      }
+      return null;
+    })
+    .reverse();
   console.debug("tweetIds:", JSON.stringify(tweetIdList, null, 2));
 
   return tweetIdList;
