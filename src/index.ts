@@ -76,7 +76,7 @@ const make_tweets = async (
   }
 
   const twitterClient = createTwitterClient({
-    tokens: await fetchTwitterCredentials(),
+    tokens: await fetchTwitterCredentials(env.STAGE),
   });
 
   const tweetResultList = await createMultipleTweets(twitterClient, params);

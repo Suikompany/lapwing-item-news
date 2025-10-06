@@ -2,7 +2,9 @@ import { describe, it, expect, beforeEach } from "vitest";
 import { getEnv } from "./envParam";
 
 describe("envParam", async () => {
-  const originalEnv = process.env;
+  const originalEnv = {
+    ...process.env,
+  };
 
   beforeEach(() => {
     process.env = { ...originalEnv }; // 環境変数をリセット
@@ -13,6 +15,7 @@ describe("envParam", async () => {
   });
 
   it("should convert ALLOW_TWEET to true when set to 'true'", () => {
+    process.env.STAGE = "dev";
     process.env.ALLOW_TWEET = "true";
     process.env.BUCKET_NAME = "test-bucket";
 
@@ -23,6 +26,7 @@ describe("envParam", async () => {
   });
 
   it("should convert ALLOW_TWEET to false when not set or not 'true'", () => {
+    process.env.STAGE = "dev";
     process.env.BUCKET_NAME = "test-bucket";
 
     const result = getEnv(process.env);
@@ -31,7 +35,17 @@ describe("envParam", async () => {
     expect(result.BUCKET_NAME).toBe("test-bucket");
   });
 
+  it("should throw an error if STAGE is missing", () => {
+    process.env.ALLOW_TWEET = "true";
+    process.env.BUCKET_NAME = "test-bucket";
+
+    expect(() => getEnv(process.env)).toThrowError(
+      'Invalid key: Expected "STAGE" but received undefined',
+    );
+  });
+
   it("should throw an error if BUCKET_NAME is missing", () => {
+    process.env.STAGE = "dev";
     process.env.ALLOW_TWEET = "true";
 
     expect(() => getEnv(process.env)).toThrowError(

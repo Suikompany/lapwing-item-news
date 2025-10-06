@@ -103,14 +103,11 @@ resource "aws_iam_policy" "lambda_policy" {
       {
         Effect = "Allow"
         Action = [
-          "ssm:GetParameters",
+          "ssm:GetParameter",
           "kms:Decrypt"
         ],
         Resource = [
-          aws_ssm_parameter.twitter_api_key.arn,
-          aws_ssm_parameter.twitter_api_secret.arn,
-          aws_ssm_parameter.twitter_access_token.arn,
-          aws_ssm_parameter.twitter_access_token_secret.arn
+          aws_ssm_parameter.twitter_credential.arn,
         ]
       },
     ]

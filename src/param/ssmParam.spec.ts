@@ -1,6 +1,7 @@
 import { fetchTwitterCredentials } from "./ssmParam";
 
 const mocks = vi.hoisted(() => ({
+  getParameter: vi.fn(),
   getParametersByName: vi.fn(),
 }));
 
@@ -8,6 +9,7 @@ vi.mock("@aws-lambda-powertools/parameters/ssm", async (importOriginal) => ({
   ...(await importOriginal<
     typeof import("@aws-lambda-powertools/parameters/ssm")
   >()),
+  getParameter: mocks.getParameter,
   getParametersByName: mocks.getParametersByName,
 }));
 
@@ -24,32 +26,36 @@ describe("fetchTwitterCredentials", () => {
   ] as const;
 
   it("fetch valid Twitter API tokens", async () => {
-    mocks.getParametersByName.mockResolvedValueOnce({
-      [PARAM_NAMES[0]]: "access-token",
-      [PARAM_NAMES[1]]: "access-token-secret",
-      [PARAM_NAMES[2]]: "api-key",
-      [PARAM_NAMES[3]]: "api-secret",
-    });
+    mocks.getParameter.mockResolvedValueOnce(
+      JSON.stringify({
+        access_token: "access_token",
+        access_token_secret: "access_token_secret",
+        api_key: "api_key",
+        api_secret: "api_secret",
+      }),
+    );
 
-    const result = await fetchTwitterCredentials();
+    const result = await fetchTwitterCredentials("dev");
 
     expect(result).toEqual({
-      accessToken: "access-token",
-      accessTokenSecret: "access-token-secret",
-      apiKey: "api-key",
-      apiSecret: "api-secret",
+      accessToken: "access_token",
+      accessTokenSecret: "access_token_secret",
+      apiKey: "api_key",
+      apiSecret: "api_secret",
     });
   });
 
   it("fetch empty Twitter API tokens", async () => {
-    mocks.getParametersByName.mockResolvedValueOnce({
-      [PARAM_NAMES[0]]: "",
-      [PARAM_NAMES[1]]: "",
-      [PARAM_NAMES[2]]: "",
-      [PARAM_NAMES[3]]: "",
-    });
+    mocks.getParameter.mockResolvedValueOnce(
+      JSON.stringify({
+        access_token: "",
+        access_token_secret: "",
+        api_key: "",
+        api_secret: "",
+      }),
+    );
 
-    const result = await fetchTwitterCredentials();
+    const result = await fetchTwitterCredentials("dev");
 
     expect(result).toEqual({
       accessToken: "",
@@ -60,15 +66,17 @@ describe("fetchTwitterCredentials", () => {
   });
 
   it("fetch missing Twitter API tokens", async () => {
-    mocks.getParametersByName.mockResolvedValueOnce({
-      [PARAM_NAMES[0]]: "access-token",
-      [PARAM_NAMES[1]]: "access-token-secret",
-      [PARAM_NAMES[2]]: "api-key",
-      // Missing api-secret
-    });
+    mocks.getParameter.mockResolvedValueOnce(
+      JSON.stringify({
+        access_token: "",
+        access_token_secret: "",
+        api_key: "",
+        // Missing api_secret
+      }),
+    );
 
-    await expect(fetchTwitterCredentials()).rejects.toThrowError(
-      'Invalid key: Expected "/LapNewItemScrapedLog/Twitter/ApiSecret" but received undefined',
+    await expect(fetchTwitterCredentials("dev")).rejects.toThrowError(
+      'Invalid key: Expected "api_secret" but received undefined',
     );
   });
 });

@@ -1,14 +1,3 @@
-locals {
-  ssm_param = {
-    twitter = {
-      api_key             = "/${local.project}/${local.stage}/Twitter/ApiKey"
-      api_secret          = "/${local.project}/${local.stage}/Twitter/ApiSecret"
-      access_token        = "/${local.project}/${local.stage}/Twitter/AccessToken"
-      access_token_secret = "/${local.project}/${local.stage}/Twitter/AccessTokenSecret"
-    }
-  }
-}
-
 variable "twitter_api_key" {
   type      = string
   nullable  = false
@@ -34,32 +23,22 @@ variable "twitter_access_token_secret" {
   ephemeral = true
 }
 
-
-resource "aws_ssm_parameter" "twitter_access_token" {
-  name             = local.ssm_param.twitter.access_token
-  type             = "SecureString"
-  value_wo         = var.twitter_access_token
-  value_wo_version = 1
+locals {
+  ssm_param = {
+    twitter = {
+      credential     = "/${local.project}/${local.stage}/Twitter/Credential"
+    }
+  }
 }
 
-resource "aws_ssm_parameter" "twitter_access_token_secret" {
-  name             = local.ssm_param.twitter.access_token_secret
+resource "aws_ssm_parameter" "twitter_credential" {
+  name             = local.ssm_param.twitter.credential
   type             = "SecureString"
-  value_wo         = var.twitter_access_token_secret
-  value_wo_version = 1
-}
-
-
-resource "aws_ssm_parameter" "twitter_api_key" {
-  name             = local.ssm_param.twitter.api_key
-  type             = "SecureString"
-  value_wo         = var.twitter_api_key
-  value_wo_version = 1
-}
-
-resource "aws_ssm_parameter" "twitter_api_secret" {
-  name             = local.ssm_param.twitter.api_secret
-  type             = "SecureString"
-  value_wo         = var.twitter_api_secret
+  value_wo         = jsonencode({
+    access_token        = var.twitter_access_token
+    access_token_secret = var.twitter_access_token_secret
+    api_key             = var.twitter_api_key
+    api_secret          = var.twitter_api_secret
+  })
   value_wo_version = 1
 }
