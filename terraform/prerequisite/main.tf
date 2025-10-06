@@ -173,7 +173,6 @@ resource "aws_iam_role_policy" "github_actions_policy" {
           "logs:CreateLogGroup",
           "logs:Tag*",
           "ssm:PutParameter",
-          "ssm:DeleteParameter*",
           "ssm:AddTagsToResource",
           "scheduler:CreateScheduleGroup",
           "scheduler:TagResource",
