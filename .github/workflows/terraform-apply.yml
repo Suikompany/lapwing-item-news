@@ -1,0 +1,82 @@
+name: Terraform apply
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        type: string
+        required: true
+      ref:
+        type: string
+        required: true
+      run-id:
+        type: string
+        required: true
+    outputs:
+      apply-outcome:
+        value: ${{ jobs.apply.outputs.apply-outcome }}
+      apply-stdout:
+        value: ${{ jobs.apply.outputs.apply-stdout }}
+    secrets:
+      DEPLOY_ROLE_ARN:
+        required: true
+      TWITTER_API_KEY:
+        required: true
+      TWITTER_API_SECRET:
+        required: true
+      TWITTER_ACCESS_TOKEN:
+        required: true
+      TWITTER_ACCESS_TOKEN_SECRET:
+        required: true
+
+permissions:
+  id-token: write
+  contents: read
+  actions: read
+
+env:
+  tf-dir: terraform/environment/${{ inputs.environment }}
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    timeout-minutes: 25
+    outputs:
+      apply-outcome: ${{ steps.apply.outcome }}
+      apply-stdout: ${{ steps.apply.outputs.stdout }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+      - uses: aws-actions/configure-aws-credentials@v5
+        with:
+          role-to-assume: ${{ secrets.DEPLOY_ROLE_ARN }}
+          aws-region: 'ap-northeast-1'
+      - id: artifact-plan
+        uses: actions/download-artifact@v4
+        with:
+          name: terraform-plan-${{ inputs.environment }}
+          merge-multiple: true # artifactの内容物をpath直下に配置する
+          run-id: ${{ inputs.run-id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - id: artifact-dist
+        uses: actions/download-artifact@v4
+        with:
+          name: dist-${{ inputs.environment }}
+          path: dist
+          merge-multiple: true # artifactの内容物をpath直下に配置する
+          run-id: ${{ inputs.run-id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: hashicorp/setup-terraform@v3
+      - id: init
+        run: terraform -chdir=${{ env.tf-dir }} init
+      - id: apply
+        run: terraform -chdir=${{ env.tf-dir }} apply -auto-approve -no-color ${{ steps.artifact-plan.outputs.download-path}}/tfplan
+        timeout-minutes: 20
+        env:
+          TF_VAR_dist_dir: ${{ steps.artifact-dist.outputs.download-path}}
+          TF_VAR_twitter_api_key: ${{ secrets.TWITTER_API_KEY }}
+          TF_VAR_twitter_api_secret: ${{ secrets.TWITTER_API_SECRET }}
+          TF_VAR_twitter_access_token: ${{ secrets.TWITTER_ACCESS_TOKEN }}
+          TF_VAR_twitter_access_token_secret: ${{ secrets.TWITTER_ACCESS_TOKEN_SECRET }}

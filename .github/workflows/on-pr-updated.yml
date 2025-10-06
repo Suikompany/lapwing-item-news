@@ -1,0 +1,72 @@
+name: On PR updated
+
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+    types:
+      - opened
+      - synchronize
+
+permissions:
+  id-token: write
+  contents: read
+  pull-requests: write
+
+env:
+  tf-base: terraform/environment
+
+jobs:
+  plan:
+    permissions:
+      id-token: write
+      contents: read
+    uses: ./.github/workflows/terraform-plan.yml
+    with:
+      environment: dev
+    secrets: inherit
+
+  output:
+    runs-on: ubuntu-latest
+    needs: plan
+    environment: dev
+    timeout-minutes: 5
+    steps:
+      - uses: actions/github-script@v8
+        if: github.event_name == 'pull_request' && (success() || failure())
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const output = `#### Terraform Initialization ⚙️: \`${{ needs.plan.outputs.init-outcome }}\`
+            #### Terraform Validation 🤖: \`${{ needs.plan.outputs.validate-outcome }}\`
+
+            <details><summary>Validation Output</summary>
+
+            \`\`\`
+            ${{ needs.plan.outputs.validate-stdout }}
+            \`\`\`
+
+            </details>
+
+            #### Terraform Plan 📖: \`${{ needs.plan.outputs.plan-outcome }}\`
+
+            <details><summary>Plan Output</summary>
+
+            \`\`\`terraform
+            ${{ needs.plan.outputs.plan-stdout }}
+            \`\`\`
+
+            </details>
+
+            If you want to deploy this, please comment the following text.
+            \`\`\`
+            /deploy ${{ github.run_id }}
+            \`\`\``;
+
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: output
+            })

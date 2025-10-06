@@ -1,37 +1,52 @@
-name: Terraform Plan By PR/Dispatch
+name: Terraform plan
 
 on:
-  workflow_dispatch:
+  workflow_call:
     inputs:
-      stage:
-        type: choice
+      environment:
+        type: string
         required: true
-        options:
-          - 'dev'
-          - 'prod'
-        default: 'dev'
-  pull_request:
-    branches:
-      - main
-      - develop
-    types:
-      - opened
-      - synchronize
+    outputs:
+      init-outcome:
+        value: ${{ jobs.plan.outputs.init-outcome }}
+      validate-outcome:
+        value: ${{ jobs.plan.outputs.validate-outcome }}
+      validate-stdout:
+        value: ${{ jobs.plan.outputs.validate-stdout }}
+      plan-outcome:
+        value: ${{ jobs.plan.outputs.plan-outcome }}
+      plan-stdout:
+        value: ${{ jobs.plan.outputs.plan-stdout }}
+    secrets:
+      DEPLOY_ROLE_ARN:
+        required: true
+      TWITTER_API_KEY:
+        required: true
+      TWITTER_API_SECRET:
+        required: true
+      TWITTER_ACCESS_TOKEN:
+        required: true
+      TWITTER_ACCESS_TOKEN_SECRET:
+        required: true
 
 permissions:
   id-token: write
   contents: read
-  pull-requests: write
 
 env:
-  stage: ${{ inputs.stage || 'dev' }}
-  tf-base: terraform/environment
+  tf-dir: terraform/environment/${{inputs.environment}}
 
 jobs:
   plan:
     runs-on: ubuntu-latest
-    environment: ${{ inputs.stage || 'dev' }}
+    environment: ${{inputs.environment}}
     timeout-minutes: 5
+    outputs:
+      init-outcome: ${{ steps.init.outcome }}
+      validate-outcome: ${{ steps.validate.outcome }}
+      validate-stdout: ${{ steps.validate.outputs.stdout }}
+      plan-outcome: ${{ steps.plan.outcome }}
+      plan-stdout: ${{ steps.plan.outputs.stdout }}
     steps:
       - uses: actions/checkout@v4
       - uses: aws-actions/configure-aws-credentials@v5
@@ -47,12 +62,12 @@ jobs:
       - run: pnpm install
       - id: build
         run: echo "dist=$(pnpm run --no-color --silent build)" >> $GITHUB_OUTPUT
-      - id: tf-init
-        run: terraform -chdir=${{ env.tf-base }}/${{ env.stage }} init
-      - id: tf-validate
+      - id: init
+        run: terraform -chdir=${{ env.tf-dir }} init
+      - id: validate
         run: terraform validate -no-color
-      - id: tf-plan
-        run: terraform -chdir=${{ env.tf-base }}/${{ env.stage }} plan -out=tfplan -no-color
+      - id: plan
+        run: terraform -chdir=${{ env.tf-dir }} plan -out=tfplan -no-color
         env:
           TF_VAR_dist_dir: ${{ steps.build.outputs.dist }}
           TF_VAR_twitter_api_key: ${{ secrets.TWITTER_API_KEY }}
@@ -62,52 +77,12 @@ jobs:
       - id: artifact-plan
         uses: actions/upload-artifact@v4
         with:
-          name: terraform-plan-${{ env.stage }}
-          path: ${{ env.tf-base }}/${{ env.stage }}/tfplan
+          name: terraform-plan-${{ inputs.environment }}
+          path: ${{ env.tf-dir }}/tfplan
           compression-level: 1
       - id: artifact-dist
         uses: actions/upload-artifact@v4
         with:
-          name: dist-${{ env.stage }}
+          name: dist-${{ inputs.environment }}
           path: ${{ steps.build.outputs.dist }}
           compression-level: 1
-      - uses: actions/github-script@v8
-        if: github.event_name == 'pull_request' && (success() || failure())
-        env:
-          PLAN: "${{ steps.tf-plan.outputs.stdout }}"
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const output = `#### Terraform Initialization ⚙️\`${{ steps.tf-init.outcome }}\`
-            #### Terraform Validation 🤖\`${{ steps.tf-validate.outcome }}\`
-            <details><summary>Validation Output</summary>
-
-            \`\`\`
-            ${{ steps.tf-validate.outputs.stdout }}
-            \`\`\`
-
-            </details>
-
-            #### Terraform Plan 📖\`${{ steps.tf-plan.outcome }}\`
-
-            <details><summary>Show Plan</summary>
-
-            \`\`\`terraform
-            ${process.env.PLAN}
-            \`\`\`
-
-            </details>
-
-            *Pusher: \`${{ github.actor }}\`, Stage: \`${{ env.stage }}\`*
-
-            If you want to deploy this, please comment the following text.
-            \`\`\`
-            /deploy ${{ github.run_id }}
-            \`\`\``;
-
-            github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number,
-              body: output
-            })
