@@ -8,10 +8,12 @@ on:
         required: true
       ref:
         type: string
-        required: true
+        required: false
+        default: ${{ github.ref }}
       run-id:
         type: string
-        required: true
+        required: false
+        default: ${{ github.run_id }}
     outputs:
       apply-outcome:
         value: ${{ jobs.apply.outputs.apply-outcome }}
@@ -72,10 +74,10 @@ jobs:
       - id: init
         run: terraform -chdir=${{ env.tf-dir }} init
       - id: apply
-        run: terraform -chdir=${{ env.tf-dir }} apply -auto-approve -no-color ${{ steps.artifact-plan.outputs.download-path}}/tfplan
+        run: terraform -chdir=${{ env.tf-dir }} apply -auto-approve -no-color ${{ steps.artifact-plan.outputs.download-path }}/tfplan
         timeout-minutes: 20
         env:
-          TF_VAR_dist_dir: ${{ steps.artifact-dist.outputs.download-path}}
+          TF_VAR_dist_dir: ${{ steps.artifact-dist.outputs.download-path }}
           TF_VAR_twitter_api_key: ${{ secrets.TWITTER_API_KEY }}
           TF_VAR_twitter_api_secret: ${{ secrets.TWITTER_API_SECRET }}
           TF_VAR_twitter_access_token: ${{ secrets.TWITTER_ACCESS_TOKEN }}

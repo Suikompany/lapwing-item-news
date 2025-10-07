@@ -20,14 +20,6 @@ on:
     secrets:
       DEPLOY_ROLE_ARN:
         required: true
-      TWITTER_API_KEY:
-        required: true
-      TWITTER_API_SECRET:
-        required: true
-      TWITTER_ACCESS_TOKEN:
-        required: true
-      TWITTER_ACCESS_TOKEN_SECRET:
-        required: true
 
 permissions:
   id-token: write
@@ -39,7 +31,6 @@ env:
 jobs:
   plan:
     runs-on: ubuntu-latest
-    environment: ${{inputs.environment}}
     timeout-minutes: 5
     outputs:
       init-outcome: ${{ steps.init.outcome }}
@@ -70,10 +61,10 @@ jobs:
         run: terraform -chdir=${{ env.tf-dir }} plan -out=tfplan -no-color
         env:
           TF_VAR_dist_dir: ${{ steps.build.outputs.dist }}
-          TF_VAR_twitter_api_key: ${{ secrets.TWITTER_API_KEY }}
-          TF_VAR_twitter_api_secret: ${{ secrets.TWITTER_API_SECRET }}
-          TF_VAR_twitter_access_token: ${{ secrets.TWITTER_ACCESS_TOKEN }}
-          TF_VAR_twitter_access_token_secret: ${{ secrets.TWITTER_ACCESS_TOKEN_SECRET }}
+          TF_VAR_twitter_api_key: "dummy value for plan"
+          TF_VAR_twitter_api_secret: "dummy value for plan"
+          TF_VAR_twitter_access_token: "dummy value for plan"
+          TF_VAR_twitter_access_token_secret: "dummy value for plan"
       - id: artifact-plan
         uses: actions/upload-artifact@v4
         with:

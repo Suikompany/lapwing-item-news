@@ -1,4 +1,4 @@
-name: On comment "/deploy <run-id>"
+name: deploy dev by comment
 
 on:
   issue_comment:
@@ -17,7 +17,6 @@ jobs:
   get-info:
     runs-on: ubuntu-latest
     if: github.event.issue.pull_request && startsWith(github.event.comment.body, '/deploy ')
-    environment: dev
     timeout-minutes: 25
     outputs:
       run-id: ${{ steps.command-args.outputs.run-id }}
