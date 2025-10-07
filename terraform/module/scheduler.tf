@@ -15,7 +15,7 @@ resource "aws_scheduler_schedule" "invoke_lambda" {
   name       = local.scheduler.name
   group_name = aws_scheduler_schedule_group.group.name
 
-  schedule_expression          = "rate(10 minutes)"
+  schedule_expression          = "cron(0/10 * * * ? *)" # 10分毎に実行
   schedule_expression_timezone = "Asia/Tokyo"
 
   flexible_time_window {
