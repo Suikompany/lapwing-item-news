@@ -18,10 +18,10 @@ locals {
 }
 
 data "archive_file" "lambda_zip" {
-  type        = "zip"
-  source_dir  = "${local.dist_dir}/src"
-  excludes    = ["*.zip"]
-  output_path = "${local.dist_dir}/${local.lambda.file_name}.zip"
+  type             = "zip"
+  source_dir       = "${local.dist_dir}/src"
+  excludes         = ["*.zip"]
+  output_path      = "${local.dist_dir}/${local.lambda.file_name}.zip"
   output_file_mode = "0644"
 }
 
@@ -47,7 +47,7 @@ resource "aws_lambda_function" "lambda_function" {
 
   logging_config {
     log_format = "Text"
-    log_group = aws_cloudwatch_log_group.lambda_log_group.name
+    log_group  = aws_cloudwatch_log_group.lambda_log_group.name
   }
 }
 
@@ -115,6 +115,6 @@ resource "aws_iam_policy" "lambda_policy" {
 }
 
 resource "aws_cloudwatch_log_group" "lambda_log_group" {
-  name = "/aws/lambda/${local.lambda.function_name}"
+  name              = "/aws/lambda/${local.lambda.function_name}"
   retention_in_days = 14
 }

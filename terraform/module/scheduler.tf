@@ -19,7 +19,7 @@ resource "aws_scheduler_schedule" "invoke_lambda" {
   schedule_expression_timezone = "Asia/Tokyo"
 
   flexible_time_window {
-    mode = "FLEXIBLE"
+    mode                      = "FLEXIBLE"
     maximum_window_in_minutes = 1
   }
 

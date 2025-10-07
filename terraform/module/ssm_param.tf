@@ -26,15 +26,15 @@ variable "twitter_access_token_secret" {
 locals {
   ssm_param = {
     twitter = {
-      credential     = "/${local.project}/${local.stage}/Twitter/Credential"
+      credential = "/${local.project}/${local.stage}/Twitter/Credential"
     }
   }
 }
 
 resource "aws_ssm_parameter" "twitter_credential" {
-  name             = local.ssm_param.twitter.credential
-  type             = "SecureString"
-  value_wo         = jsonencode({
+  name = local.ssm_param.twitter.credential
+  type = "SecureString"
+  value_wo = jsonencode({
     access_token        = var.twitter_access_token
     access_token_secret = var.twitter_access_token_secret
     api_key             = var.twitter_api_key
