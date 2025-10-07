@@ -1,0 +1,100 @@
+name: Deploy prod on push to main
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  id-token: write
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: deploy-prod
+  cancel-in-progress: false
+
+env:
+  tf-base: terraform/environment
+
+jobs:
+  plan:
+    permissions:
+      id-token: write
+      contents: read
+    uses: ./.github/workflows/terraform-plan.yml
+    with:
+      environment: prod
+    secrets: inherit
+
+  report-plan:
+    runs-on: ubuntu-latest
+    needs: plan
+    if: success() || failure()
+    steps:
+    - name: Report Terraform Plan to Job Summary
+      uses: actions/github-script@v8
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        script: |
+          const output = `#### Terraform Initialization ⚙️: \`${{ needs.plan.outputs.init-outcome }}\`
+          #### Terraform Validation 🤖: \`${{ needs.plan.outputs.validate-outcome }}\`
+
+          <details><summary>Validation Output</summary>
+
+          \`\`\`
+          ${{ needs.plan.outputs.validate-stdout }}
+          \`\`\`
+
+          </details>
+
+          #### Terraform Plan 📖: \`${{ needs.plan.outputs.plan-outcome }}\`
+
+          <details><summary>Plan Output</summary>
+
+          \`\`\`terraform
+          ${{ needs.plan.outputs.plan-stdout }}
+          \`\`\`
+
+          </details>`;
+
+          await core.summary
+            .addHeading('Terraform plan report')
+            .addRaw(output)
+            .write();
+
+  apply:
+    needs: plan
+    permissions:
+      id-token: write
+      contents: read
+      actions: read
+    uses: ./.github/workflows/terraform-apply.yml
+    with:
+      environment: prod
+    secrets: inherit
+
+  report-apply:
+    runs-on: ubuntu-latest
+    needs: apply
+    if: success() || failure()
+    steps:
+    - name: Report Terraform Apply to Job Summary
+      uses: actions/github-script@v8
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        script: |
+          const output = `#### Terraform Apply 📦: \`${{ needs.apply.outputs.apply-outcome }}\`
+
+          <details><summary>Apply Output</summary>
+
+          \`\`\`terraform
+          ${{ needs.apply.outputs.apply-stdout }}
+          \`\`\`
+
+          </details>`;
+
+          await core.summary
+            .addHeading('Terraform apply report')
+            .addRaw(output)
+            .write();
