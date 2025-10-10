@@ -1,4 +1,8 @@
-import { buildProductUrl, scrapeProductList } from "./products";
+import {
+  buildProductUrl,
+  buildProductsUrl,
+  scrapeProductList,
+} from "./products";
 
 describe("buildProductUrl", () => {
   it("should build correct product URL for a given productId", () => {
@@ -8,6 +12,44 @@ describe("buildProductUrl", () => {
     expect(buildProductUrl({ productId: 0 })).toBe(
       "https://booth.pm/ja/items/0",
     );
+  });
+});
+
+describe("buildProductsUrl", () => {
+  it("should build correct URL with query parameters", () => {
+    const url = buildProductsUrl({
+      queryParams: {
+        sort: "new",
+        page: "2",
+        "tags[]": ["Lapwing", "VRChat"],
+        "except_words[]": ["3D環境・ワールド"],
+      },
+    });
+
+    const searchParams = new URLSearchParams([
+      ["sort", "new"],
+      ["page", "2"],
+      ["tags[]", "Lapwing"],
+      ["tags[]", "VRChat"],
+      ["except_words[]", "3D環境・ワールド"],
+    ]);
+    expect(url).toBe(`https://booth.pm/ja/items?${searchParams}`);
+  });
+
+  it("should build URL with empty queryParams", () => {
+    const url = buildProductsUrl({ queryParams: {} });
+    expect(url).toBe("https://booth.pm/ja/items?");
+  });
+
+  it("should build URL with only one tag", () => {
+    const url = buildProductsUrl({
+      queryParams: {
+        "tags[]": ["Lapwing"],
+      },
+    });
+
+    const searchParams = new URLSearchParams([["tags[]", "Lapwing"]]);
+    expect(url).toBe(`https://booth.pm/ja/items?${searchParams}`);
   });
 });
 

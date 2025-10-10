@@ -3,12 +3,13 @@ import { buildURLSearchParams } from "../util/buildSearchParams";
 
 const BROWSE_PRODUCTS_PATH = "https://booth.pm/ja/browse" as const;
 const SEARCH_PRODUCTS_PATH = "https://booth.pm/ja/search" as const;
-const PRODUCT_PATH = "https://booth.pm/ja/items" as const;
+const PRODUCTS_PATH = "https://booth.pm/ja/items" as const;
 
 /** 必要になったら増やす */
 type SearchQueryParams = {
   sort?: "new";
   "except_words[]"?: string[];
+  "tags[]"?: string[];
   page?: `${number}`;
 };
 
@@ -30,11 +31,19 @@ const buildSearchUrl: BuildSearchUrl = ({ keyword, queryParams }) => {
   return `${SEARCH_PRODUCTS_PATH}/${keyword}?${queryString}` as const;
 };
 
+type BuildProductsUrl = (params: {
+  queryParams: SearchQueryParams;
+}) => `${typeof PRODUCTS_PATH}?${string}`;
+export const buildProductsUrl: BuildProductsUrl = ({ queryParams }) => {
+  const queryString = buildURLSearchParams(queryParams);
+  return `${PRODUCTS_PATH}?${queryString}` as const;
+};
+
 type BuildProductUrl = <TProductId extends number>(params: {
   productId: TProductId;
-}) => `${typeof PRODUCT_PATH}/${TProductId}`;
+}) => `${typeof PRODUCTS_PATH}/${TProductId}`;
 export const buildProductUrl: BuildProductUrl = ({ productId }) => {
-  return `${PRODUCT_PATH}/${productId}`;
+  return `${PRODUCTS_PATH}/${productId}`;
 };
 
 // product_id は data-product-id 属性から取得できる。
@@ -44,9 +53,9 @@ export const buildProductUrl: BuildProductUrl = ({ productId }) => {
 // a タグには data-tracking="click_item" という属性が付与されているため、ここからも取得可能。
 // 商品は公開日時で降順
 export const scrapeProductList = async () => {
-  const url = buildSearchUrl({
-    keyword: "Lapwing",
+  const url = buildProductsUrl({
     queryParams: {
+      "tags[]": ["Lapwing"],
       sort: "new",
       "except_words[]": ["3D環境・ワールド"],
     },
