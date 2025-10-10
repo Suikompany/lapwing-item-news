@@ -1,3 +1,6 @@
+import { server } from "../mocks/server";
+import { http, HttpResponse } from "msw";
+
 import {
   buildProductUrl,
   buildProductsUrl,
@@ -65,7 +68,11 @@ describe("scrapeProductList", () => {
         </li>
       </ul>
     `;
-    vi.spyOn(global, "fetch").mockResolvedValueOnce(new Response(mockHtml));
+    server.use(
+      http.get("https://booth.pm/ja/items", () => {
+        return HttpResponse.html(mockHtml);
+      }),
+    );
 
     const products = await scrapeProductList();
     expect(products).toEqual([
@@ -75,15 +82,23 @@ describe("scrapeProductList", () => {
   });
 
   it("should return empty array if no valid products found", async () => {
-    vi.spyOn(global, "fetch").mockResolvedValueOnce(new Response("<ul></ul>"));
+    server.use(
+      http.get("https://booth.pm/ja/items", () => {
+        return HttpResponse.html("<ul></ul>");
+      }),
+    );
 
     const products = await scrapeProductList();
     expect(products).toEqual([]);
   });
 
   it("should handle fetch error gracefully", async () => {
-    vi.spyOn(global, "fetch").mockRejectedValueOnce(new Error("Network error"));
+    server.use(
+      http.get("https://booth.pm/ja/items", () => {
+        return HttpResponse.error();
+      }),
+    );
 
-    await expect(scrapeProductList()).rejects.toThrow("Network error");
+    await expect(scrapeProductList()).rejects.toThrow("Failed to fetch");
   });
 });
