@@ -1,16 +1,16 @@
 import { fetchTwitterCredentials } from "./ssmParam";
 
 const mocks = vi.hoisted(() => ({
-  getParameter: vi.fn(),
-  getParametersByName: vi.fn(),
+  get: vi.fn(),
 }));
 
 vi.mock("@aws-lambda-powertools/parameters/ssm", async (importOriginal) => ({
   ...(await importOriginal<
     typeof import("@aws-lambda-powertools/parameters/ssm")
   >()),
-  getParameter: mocks.getParameter,
-  getParametersByName: mocks.getParametersByName,
+  SSMProvider: vi.fn().mockImplementation(() => ({
+    get: mocks.get,
+  })),
 }));
 
 afterEach(() => {
@@ -26,7 +26,7 @@ describe("fetchTwitterCredentials", () => {
   ] as const;
 
   it("fetch valid Twitter API tokens", async () => {
-    mocks.getParameter.mockResolvedValueOnce(
+    mocks.get.mockResolvedValueOnce(
       JSON.stringify({
         access_token: "access_token",
         access_token_secret: "access_token_secret",
@@ -46,7 +46,7 @@ describe("fetchTwitterCredentials", () => {
   });
 
   it("fetch empty Twitter API tokens", async () => {
-    mocks.getParameter.mockResolvedValueOnce(
+    mocks.get.mockResolvedValueOnce(
       JSON.stringify({
         access_token: "",
         access_token_secret: "",
@@ -66,7 +66,7 @@ describe("fetchTwitterCredentials", () => {
   });
 
   it("fetch missing Twitter API tokens", async () => {
-    mocks.getParameter.mockResolvedValueOnce(
+    mocks.get.mockResolvedValueOnce(
       JSON.stringify({
         access_token: "",
         access_token_secret: "",

@@ -1,5 +1,11 @@
 import * as v from "valibot";
-import { getParameter } from "@aws-lambda-powertools/parameters/ssm";
+import { SSMProvider } from "@aws-lambda-powertools/parameters/ssm";
+
+const paramProvider = new SSMProvider({
+  clientConfig: {
+    region: "ap-northeast-1",
+  },
+});
 
 const TWITTER_CREDENTIAL_PATH = (stage: "dev" | "prod") =>
   `/lapwing-item-news/${stage}/Twitter/Credential` as const;
@@ -45,7 +51,7 @@ const fetchParam = async ({
   withDecryption,
   maxAge,
 }: FetchParamProps) => {
-  const fetchedParam = await getParameter(name, {
+  const fetchedParam = await paramProvider.get(name, {
     throwOnError: true,
     decrypt: withDecryption,
     maxAge: maxAge,
