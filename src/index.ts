@@ -21,14 +21,14 @@ export const handler: Handler = async (event, context) => {
   const prevProductIdList = prevScrapedData?.product_ids ?? [];
   console.debug("prevProductIdList:", prevProductIdList);
 
-  // 差分を求める
-  const diff = productList.filter(
-    (product) => !prevProductIdList.includes(product.id),
-  );
-  console.debug("diff:", JSON.stringify(diff, null, 2));
+  // 最新の商品が非公開にされたとき直前（51件目）の商品が新作判定されるのを避けるため、少し余裕を持たせて30件で比較している
+  const newProducts = productList
+    .slice(0, 30)
+    .filter((product) => !prevProductIdList.includes(product.id));
+  console.debug("newProducts:", JSON.stringify(newProducts, null, 2));
 
   // 新しい商品が一つもない場合は早期終了
-  if (diff.length < 1) {
+  if (newProducts.length < 1) {
     return;
   }
 
@@ -40,7 +40,7 @@ export const handler: Handler = async (event, context) => {
   );
 
   // 時系列通りにツイートするため、公開日時の昇順にしたパラメータを作成
-  const tweetParams = diff
+  const tweetParams = newProducts
     .map((product) => ({
       productName: product.name,
       productId: product.id,
@@ -55,7 +55,7 @@ export const handler: Handler = async (event, context) => {
   await putLog(
     env.BUCKET_NAME,
     startScrapedAt,
-    diff.map((product, index) => ({
+    newProducts.map((product, index) => ({
       product_id: product.id,
       tweet_id: tweetIdList.at(index) ?? null,
     })),
