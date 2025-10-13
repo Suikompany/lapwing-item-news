@@ -13,7 +13,8 @@
 				"biomejs.biome",
 				"YoavBls.pretty-ts-errors",
 				"hashicorp.terraform",
-				"vitest.explorer"
+				"vitest.explorer",
+				"github.vscode-github-actions"
 			],
 			"settings": {
 				"typescript.tsdk": "node_modules/typescript/lib",

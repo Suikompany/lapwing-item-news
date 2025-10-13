@@ -1,0 +1,79 @@
+name: Terraform plan
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        type: string
+        required: true
+    outputs:
+      init-outcome:
+        value: ${{ jobs.plan.outputs.init-outcome }}
+      validate-outcome:
+        value: ${{ jobs.plan.outputs.validate-outcome }}
+      validate-stdout:
+        value: ${{ jobs.plan.outputs.validate-stdout }}
+      plan-outcome:
+        value: ${{ jobs.plan.outputs.plan-outcome }}
+      plan-stdout:
+        value: ${{ jobs.plan.outputs.plan-stdout }}
+    secrets:
+      DEPLOY_ROLE_ARN:
+        required: true
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  tf-dir: terraform/environment/${{inputs.environment}}
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      init-outcome: ${{ steps.init.outcome }}
+      validate-outcome: ${{ steps.validate.outcome }}
+      validate-stdout: ${{ steps.validate.outputs.stdout }}
+      plan-outcome: ${{ steps.plan.outcome }}
+      plan-stdout: ${{ steps.plan.outputs.stdout }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: aws-actions/configure-aws-credentials@v5
+        with:
+          role-to-assume: ${{ secrets.DEPLOY_ROLE_ARN }}
+          aws-region: 'ap-northeast-1'
+      - uses: hashicorp/setup-terraform@v3
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+      - run: pnpm install
+      - id: build
+        run: echo "dist=$(pnpm run --no-color --silent build)" >> $GITHUB_OUTPUT
+      - id: init
+        run: terraform -chdir=${{ env.tf-dir }} init
+      - id: validate
+        run: terraform validate -no-color
+      - id: plan
+        run: terraform -chdir=${{ env.tf-dir }} plan -out=tfplan -no-color
+        env:
+          TF_VAR_dist_dir: ${{ steps.build.outputs.dist }}
+          TF_VAR_twitter_api_key: "dummy value for plan"
+          TF_VAR_twitter_api_secret: "dummy value for plan"
+          TF_VAR_twitter_access_token: "dummy value for plan"
+          TF_VAR_twitter_access_token_secret: "dummy value for plan"
+      - id: artifact-plan
+        uses: actions/upload-artifact@v4
+        with:
+          name: terraform-plan-${{ inputs.environment }}
+          path: ${{ env.tf-dir }}/tfplan
+          compression-level: 1
+      - id: artifact-dist
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-${{ inputs.environment }}
+          path: ${{ steps.build.outputs.dist }}
+          compression-level: 1

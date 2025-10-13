@@ -1,0 +1,91 @@
+name: deploy dev by comment
+
+on:
+  issue_comment:
+    types:
+      - created
+
+permissions:
+  id-token: write
+  contents: read
+  pull-requests: write
+
+env:
+  tf-dir: terraform/environment/dev
+
+jobs:
+  get-info:
+    runs-on: ubuntu-latest
+    if: github.event.issue.pull_request && startsWith(github.event.comment.body, '/deploy ')
+    timeout-minutes: 25
+    outputs:
+      run-id: ${{ steps.command-args.outputs.run-id }}
+      pr-ref: ${{ steps.get-pr-ref.outputs.result }}
+    steps:
+      - name: validate and extract run-id
+        id: command-args
+        uses: actions/github-script@v8
+        timeout-minutes: 1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const comment = context.payload.comment.body.trim();
+            const match = comment.match(/^\/deploy\s+(\d+)$/);
+            if (!match) {
+              throw new Error("Invalid comment format. Expected '/deploy <run-id>'.");
+            }
+            core.setOutput("run-id", match[1]);
+      - id: get-pr-ref
+        uses: actions/github-script@v8
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          result-encoding: string
+          script: |
+            const pull_request = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number
+            })
+            return pull_request.data.head.ref
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.get-pr-ref.outputs.result }}
+
+  apply:
+    needs: get-info
+    permissions:
+      id-token: write
+      contents: read
+      actions: read
+    uses: ./.github/workflows/terraform-apply.yml
+    with:
+      environment: dev
+      ref: ${{ needs.get-info.outputs.pr-ref }}
+      run-id: ${{ needs.get-info.outputs.run-id }}
+    secrets: inherit
+
+  output:
+    runs-on: ubuntu-latest
+    needs: apply
+    steps:
+      - uses: actions/github-script@v8
+        if: success() || failure()
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const output = `#### Terraform Apply 📦: \`${{ needs.apply.outputs.apply-outcome }}\`
+
+            <details><summary>Apply Output</summary>
+
+            \`\`\`terraform
+            ${{ needs.apply.outputs.apply-stdout }}
+            \`\`\`
+
+            </details>`;
+
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: output
+            })

@@ -1,3 +1,12 @@
+locals {
+  scheduler = {
+    group_name       = "${local.project}-${local.stage}-scheduler-group"
+    name             = "${local.project}-${local.stage}-scheduler"
+    execution_role   = "${local.project}-${local.stage}-scheduler-role"
+    execution_policy = "${local.project}-${local.stage}-scheduler-policy"
+  }
+}
+
 resource "aws_scheduler_schedule_group" "group" {
   name = local.scheduler.group_name
 }
@@ -6,12 +15,12 @@ resource "aws_scheduler_schedule" "invoke_lambda" {
   name       = local.scheduler.name
   group_name = aws_scheduler_schedule_group.group.name
 
-  # 10分毎に実行
-  schedule_expression          = "cron(0/10 * * * ? *)"
+  schedule_expression          = "cron(0/10 * * * ? *)" # 10分毎に実行
   schedule_expression_timezone = "Asia/Tokyo"
 
   flexible_time_window {
-    mode = "OFF"
+    mode                      = "FLEXIBLE"
+    maximum_window_in_minutes = 1
   }
 
   target {
@@ -21,12 +30,8 @@ resource "aws_scheduler_schedule" "invoke_lambda" {
     retry_policy {
       maximum_retry_attempts = 0
     }
-
   }
-
 }
-
-
 
 resource "aws_iam_role" "scheduler_role" {
   name = local.scheduler.execution_role
