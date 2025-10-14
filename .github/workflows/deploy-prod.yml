@@ -4,6 +4,15 @@ on:
   push:
     branches:
       - main
+    paths:
+      - .github/workflows/deploy-prod.yml
+      - '**.ts'
+      - terraform/environment/dev/**
+      - terraform/module/**
+      - esbuild.mjs
+      - package.json
+      - package-lock.json
+      - tsconfig.json
 
 permissions:
   id-token: write
