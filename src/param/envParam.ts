@@ -7,6 +7,11 @@ const envSchema = v.looseObject({
     v.transform((s) => s === "true"),
   ),
   BUCKET_NAME: v.string(),
+  BLOCKED_SUBDOMAINS: v.pipe(
+    v.optional(v.string()),
+    v.transform((s) => (s ? s.split(",") : [])),
+    v.array(v.string()),
+  ),
 });
 
 export const getEnv = (

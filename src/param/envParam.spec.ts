@@ -2,6 +2,25 @@ import { describe, it, expect, beforeEach } from "vitest";
 import { getEnv } from "./envParam";
 
 describe("envParam", async () => {
+  it("should parse BLOCKED_SUBDOMAINS as array when set", () => {
+    process.env.STAGE = "dev";
+    process.env.ALLOW_TWEET = "true";
+    process.env.BUCKET_NAME = "test-bucket";
+    process.env.BLOCKED_SUBDOMAINS = "foo,bar";
+
+    const result = getEnv(process.env);
+    expect(result.BLOCKED_SUBDOMAINS).toEqual(["foo", "bar"]);
+  });
+
+  it("should default BLOCKED_SUBDOMAINS to empty array when not set", () => {
+    process.env.STAGE = "dev";
+    process.env.ALLOW_TWEET = "true";
+    process.env.BUCKET_NAME = "test-bucket";
+    process.env.BLOCKED_SUBDOMAINS = undefined;
+
+    const result = getEnv(process.env);
+    expect(result.BLOCKED_SUBDOMAINS).toEqual([]);
+  });
   const originalEnv = {
     ...process.env,
   };

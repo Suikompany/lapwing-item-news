@@ -31,12 +31,17 @@ export const handler: Handler = async (event, context) => {
     .filter((product) => !prevProductIdList.includes(product.id));
   console.debug("newProducts:", JSON.stringify(newProducts, null, 2));
 
+  // ブロックされたサブドメインの商品を除外
+  const filteredNewProducts = newProducts.filter(
+    (product) => !env.BLOCKED_SUBDOMAINS.includes(product.shopSubdomain),
+  );
+
   // 新しい商品が一つもない場合は早期終了
-  if (newProducts.length < 1) {
+  if (filteredNewProducts.length < 1) {
     return;
   }
 
-  // 今回の商品一覧で更新
+  // 今回の商品一覧で更新（そのまま保存してほしいのでフィルタリングされてない）
   await putScrapedData(
     env.BUCKET_NAME,
     startScrapedAt,
@@ -44,7 +49,7 @@ export const handler: Handler = async (event, context) => {
   );
 
   // 時系列通りにツイートするため、公開日時の昇順にしたパラメータを作成
-  const tweetParams = newProducts
+  const tweetParams = filteredNewProducts
     .map((product) => ({
       productName: product.name,
       productId: product.id,
@@ -60,7 +65,7 @@ export const handler: Handler = async (event, context) => {
   await putLog(
     env.BUCKET_NAME,
     startScrapedAt,
-    newProducts.map((product, index) => ({
+    filteredNewProducts.map((product, index) => ({
       product_id: product.id,
       tweet_id: tweetIdList.at(index) ?? null,
     })),
