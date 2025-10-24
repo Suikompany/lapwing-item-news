@@ -2,15 +2,20 @@ import * as v from "valibot";
 
 const envSchema = v.looseObject({
   STAGE: v.union([v.literal("dev"), v.literal("prod")]),
-  ALLOW_TWEET: v.pipe(
-    v.optional(v.string(), "false"),
-    v.transform((s) => s === "true"),
+  ALLOW_TWEET: v.fallback(
+    v.pipe(
+      v.string(),
+      v.transform((s) => s === "true"),
+    ),
+    false,
   ),
   BUCKET_NAME: v.string(),
-  BLOCKED_SUBDOMAINS: v.pipe(
-    v.optional(v.string()),
-    v.transform((s) => (s ? s.split(",") : [])),
-    v.array(v.string()),
+  BLOCKED_SUBDOMAINS: v.fallback(
+    v.pipe(
+      v.string(),
+      v.transform((s) => (s ? s.split(",") : [])),
+    ),
+    [],
   ),
 });
 
