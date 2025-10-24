@@ -50,6 +50,13 @@ resource "aws_lambda_function" "lambda_function" {
     log_format = "Text"
     log_group  = aws_cloudwatch_log_group.lambda_log_group.name
   }
+
+  lifecycle {
+    ignore_changes = [
+      environment[0].variables.ALLOW_TWEET,
+      environment[0].variables.BLOCKED_SUBDOMAINS,
+    ]
+  }
 }
 
 resource "aws_iam_role" "lambda_role" {
