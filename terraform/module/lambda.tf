@@ -53,8 +53,8 @@ resource "aws_lambda_function" "lambda_function" {
 
   lifecycle {
     ignore_changes = [
-      environment[0].variables.ALLOW_TWEET,
-      environment[0].variables.BLOCKED_SUBDOMAINS,
+      environment[0].variables["ALLOW_TWEET"],
+      environment[0].variables["BLOCKED_SUBDOMAINS"],
     ]
   }
 }
