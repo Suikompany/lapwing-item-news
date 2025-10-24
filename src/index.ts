@@ -1,7 +1,11 @@
 import type { Handler } from "aws-lambda";
 
 import { scrapeProductList } from "./booth/products";
-import { createMultipleTweets, createTwitterClient } from "./twitter/twitter";
+import {
+  buildTweetText,
+  createMultipleTweets,
+  createTwitterClient,
+} from "./twitter/twitter";
 import { getScrapedData, putScrapedData, putLog } from "./db/s3";
 import { fetchTwitterCredentials } from "./param/ssmParam";
 import { truncateUnderMin } from "./util/truncateUnderMin";
@@ -82,7 +86,11 @@ const make_tweets = async (
     tokens: await fetchTwitterCredentials(env.STAGE),
   });
 
-  const tweetResultList = await createMultipleTweets(twitterClient, params);
+  const tweetTexts = params.map(({ productName, productId, hashtags }) =>
+    buildTweetText({ productName, productId, hashtags }),
+  );
+
+  const tweetResultList = await createMultipleTweets(twitterClient, tweetTexts);
   console.debug("tweetResults:", JSON.stringify(tweetResultList, null, 2));
 
   // 公開日時が降順の newProductIdList に併せて tweetIdList も降順にする
