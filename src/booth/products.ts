@@ -46,12 +46,6 @@ export const buildProductUrl: BuildProductUrl = ({ productId }) => {
   return `${PRODUCTS_PATH}/${productId}`;
 };
 
-// product_id は data-product-id 属性から取得できる。
-// 取得した product_id から商品ページの URL を生成可能。
-// 例: https://booth.pm/ja/items/${product_id}
-// 商品名は div class="item-card__title" の子要素の a タグのテキストから取得できる。
-// a タグには data-tracking="click_item" という属性が付与されているため、ここからも取得可能。
-// 商品は公開日時で降順
 export const scrapeProductList = async () => {
   const url = buildProductsUrl({
     queryParams: {
@@ -69,6 +63,13 @@ export const scrapeProductList = async () => {
   return products;
 };
 
+// product_id は data-product-id 属性から取得できる。
+// 取得した product_id から商品ページの URL を生成可能。
+// 例: https://booth.pm/ja/items/${product_id}
+// 商品名は div class="item-card__title" の子要素の a タグのテキストから取得できる。data-tracking="click_item" という属性が付与されているため、ここからもタグ取得可能。
+// ショップのサブドメインは data-product-brand 属性から取得できる。
+// ショップ名は div class="item-card__shop-name" のテキストから取得できる。
+// 商品は公開日時で降順
 const parseProductListHTML = (html: string) => {
   const root = parse(html);
 
@@ -78,14 +79,18 @@ const parseProductListHTML = (html: string) => {
     const rawProductName = li.querySelector(
       "a.item-card__title-anchor--multiline",
     )?.text;
+    const rawShopSubdomain = li.getAttribute("data-product-brand");
+    const rawShopName = li.querySelector("div.item-card__shop-name")?.text;
 
-    if (!rawProductId || !rawProductName) {
+    if (!rawProductId || !rawProductName || !rawShopSubdomain || !rawShopName) {
       return [];
     }
 
     return {
       id: Number(rawProductId.trim()),
       name: rawProductName.trim(),
+      shopSubdomain: rawShopSubdomain.trim(),
+      shopName: rawShopName.trim(),
     };
   });
 

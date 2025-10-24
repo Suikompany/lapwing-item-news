@@ -13,45 +13,56 @@ describe("buildTweetText", () => {
     const result = buildTweetText({
       productName: "商品名",
       productId: 123,
+      shopName: "ショップ名",
       hashtags: ["#tag1", "#tag2"],
     });
-    expect(result).toBe("商品名\n#tag1 #tag2\nhttps://booth.pm/ja/items/123");
+    expect(result).toBe(
+      "商品名\nショップ名\n#tag1 #tag2\nhttps://booth.pm/ja/items/123",
+    );
   });
 
   it("タグなしで正しく生成される", () => {
     const result = buildTweetText({
       productName: "商品名",
       productId: 123,
+      shopName: "ショップ名",
       hashtags: [],
     });
-    expect(result).toBe("商品名\n\nhttps://booth.pm/ja/items/123");
+    expect(result).toBe("商品名\nショップ名\n\nhttps://booth.pm/ja/items/123");
   });
 
   it("タグが1つでも正しく生成される", () => {
     const result = buildTweetText({
       productName: "商品名",
       productId: 123,
+      shopName: "ショップ名",
       hashtags: ["#tag1"],
     });
-    expect(result).toBe("商品名\n#tag1\nhttps://booth.pm/ja/items/123");
+    expect(result).toBe(
+      "商品名\nショップ名\n#tag1\nhttps://booth.pm/ja/items/123",
+    );
   });
 
   it("productIdが0でも正しく生成される", () => {
     const result = buildTweetText({
       productName: "商品名",
       productId: 0,
+      shopName: "ショップ名",
       hashtags: ["#tag1"],
     });
-    expect(result).toBe("商品名\n#tag1\nhttps://booth.pm/ja/items/0");
+    expect(result).toBe(
+      "商品名\nショップ名\n#tag1\nhttps://booth.pm/ja/items/0",
+    );
   });
 
   it("productNameが空でも正しく生成される", () => {
     const result = buildTweetText({
       productName: "",
       productId: 123,
+      shopName: "ショップ名",
       hashtags: ["#tag1"],
     });
-    expect(result).toBe("\n#tag1\nhttps://booth.pm/ja/items/123");
+    expect(result).toBe("\nショップ名\n#tag1\nhttps://booth.pm/ja/items/123");
   });
 });
 
@@ -240,13 +251,14 @@ describe("createTweet", () => {
     const tweetText = buildTweetText({
       productName: "Product",
       productId: 1,
+      shopName: "Shop",
       hashtags: ["#tag1", "#tag2"],
     });
     const result = await createTweet(client, tweetText);
 
     expect(twitterPostMock).toHaveBeenCalledWith(
       "tweets",
-      { text: "Product\n#tag1 #tag2\nhttps://booth.pm/ja/items/1" },
+      { text: "Product\nShop\n#tag1 #tag2\nhttps://booth.pm/ja/items/1" },
       { fullResponse: true },
     );
     expect(result).toEqual({
@@ -269,13 +281,14 @@ describe("createTweet", () => {
     const tweetText = buildTweetText({
       productName: "Product",
       productId: 1,
+      shopName: "Shop",
       hashtags: [],
     });
     const result = await createTweet(client, tweetText);
 
     expect(twitterPostMock).toHaveBeenCalledWith(
       "tweets",
-      { text: "Product\n\nhttps://booth.pm/ja/items/1" },
+      { text: "Product\nShop\n\nhttps://booth.pm/ja/items/1" },
       { fullResponse: true },
     );
     expect(result).toEqual({
@@ -295,6 +308,7 @@ describe("createTweet", () => {
     const tweetText = buildTweetText({
       productName: "Product",
       productId: 1,
+      shopName: "Shop",
       hashtags: ["#tag1", "#tag2"],
     });
     const result = createTweet(client, tweetText);
@@ -305,7 +319,7 @@ describe("createTweet", () => {
 
     expect(twitterPostMock).toHaveBeenCalledWith(
       "tweets",
-      { text: "Product\n#tag1 #tag2\nhttps://booth.pm/ja/items/1" },
+      { text: "Product\nShop\n#tag1 #tag2\nhttps://booth.pm/ja/items/1" },
       { fullResponse: true },
     );
   });
@@ -323,6 +337,7 @@ describe("createTweet", () => {
     const tweetText = buildTweetText({
       productName: "Product",
       productId: 1,
+      shopName: "Shop",
       hashtags: ["#tag1", "#tag2"],
     });
     const result = createTweet(client, tweetText);
@@ -333,7 +348,7 @@ describe("createTweet", () => {
 
     expect(twitterPostMock).toHaveBeenCalledWith(
       "tweets",
-      { text: "Product\n#tag1 #tag2\nhttps://booth.pm/ja/items/1" },
+      { text: "Product\nShop\n#tag1 #tag2\nhttps://booth.pm/ja/items/1" },
       { fullResponse: true },
     );
   });
@@ -352,6 +367,7 @@ describe("createTweet", () => {
     const tweetText = buildTweetText({
       productName: "Product",
       productId: 1,
+      shopName: "Shop",
       hashtags: ["#tag1", "#tag2"],
     });
     const result = createTweet(client, tweetText);
@@ -360,7 +376,7 @@ describe("createTweet", () => {
 
     expect(twitterPostMock).toHaveBeenCalledWith(
       "tweets",
-      { text: "Product\n#tag1 #tag2\nhttps://booth.pm/ja/items/1" },
+      { text: "Product\nShop\n#tag1 #tag2\nhttps://booth.pm/ja/items/1" },
       { fullResponse: true },
     );
   });
@@ -379,6 +395,7 @@ describe("createTweet", () => {
     const tweetText = buildTweetText({
       productName: "Product",
       productId: 1,
+      shopName: "Shop",
       hashtags: ["#tag1", "#tag2"],
     });
     const result = createTweet(client, tweetText);
@@ -389,7 +406,7 @@ describe("createTweet", () => {
 
     expect(twitterPostMock).toHaveBeenCalledWith(
       "tweets",
-      { text: "Product\n#tag1 #tag2\nhttps://booth.pm/ja/items/1" },
+      { text: "Product\nShop\n#tag1 #tag2\nhttps://booth.pm/ja/items/1" },
       { fullResponse: true },
     );
   });
@@ -407,6 +424,7 @@ describe("createTweet", () => {
     const tweetText = buildTweetText({
       productName: "Product",
       productId: 1,
+      shopName: "Shop",
       hashtags: ["#tag1", "#tag2"],
     });
     const result = createTweet(client, tweetText);
@@ -417,7 +435,7 @@ describe("createTweet", () => {
 
     expect(twitterPostMock).toHaveBeenCalledWith(
       "tweets",
-      { text: "Product\n#tag1 #tag2\nhttps://booth.pm/ja/items/1" },
+      { text: "Product\nShop\n#tag1 #tag2\nhttps://booth.pm/ja/items/1" },
       { fullResponse: true },
     );
   });

@@ -57,14 +57,16 @@ describe("buildProductsUrl", () => {
 });
 
 describe("scrapeProductList", () => {
-  it("should fetch product list and parse products correctly", async () => {
+  it("should fetch product list and parse products with shop info correctly", async () => {
     const mockHtml = `
       <ul>
-        <li data-product-id="123">
+        <li data-product-id="123" data-product-brand="shop-a">
           <a class="item-card__title-anchor--multiline">Product A</a>
+          <div class="item-card__shop-name">ショップA</div>
         </li>
-        <li data-product-id="456">
+        <li data-product-id="456" data-product-brand="shop-b">
           <a class="item-card__title-anchor--multiline">Product B</a>
+          <div class="item-card__shop-name">ショップB</div>
         </li>
       </ul>
     `;
@@ -76,8 +78,18 @@ describe("scrapeProductList", () => {
 
     const products = await scrapeProductList();
     expect(products).toEqual([
-      { id: 123, name: "Product A" },
-      { id: 456, name: "Product B" },
+      {
+        id: 123,
+        name: "Product A",
+        shopSubdomain: "shop-a",
+        shopName: "ショップA",
+      },
+      {
+        id: 456,
+        name: "Product B",
+        shopSubdomain: "shop-b",
+        shopName: "ショップB",
+      },
     ]);
   });
 

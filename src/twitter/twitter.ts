@@ -118,15 +118,23 @@ export const createTweet: CreateTweet = async (client, text) => {
 type BuildTweetText = (params: {
   productName: string;
   productId: number;
+  shopName: string;
   hashtags: `#${string}`[];
 }) => string;
 export const buildTweetText: BuildTweetText = ({
   productName,
   productId,
+  shopName,
   hashtags,
 }) => {
-  const textLines: [productName: string, hashtags: string, url: string] = [
+  const textLines: [
+    productName: string,
+    shopName: string,
+    hashtags: string,
+    url: string,
+  ] = [
     productName,
+    shopName,
     hashtags.join(" "),
     buildProductUrl({ productId: productId }),
   ];
