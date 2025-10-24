@@ -42,6 +42,7 @@ resource "aws_lambda_function" "lambda_function" {
       STAGE       = local.stage
       BUCKET_NAME = aws_s3_bucket.bucket.bucket
       ALLOW_TWEET = "false"
+      BLOCKED_SUBDOMAINS = ""
     }
   }
 
