@@ -2,16 +2,28 @@ import { describe, it, expect } from "vitest";
 import { getEnv } from "./envParam";
 
 describe("envParam", async () => {
-  it("should parse BLOCKED_SUBDOMAINS as array when set", () => {
+  it("parses single BLOCKED_SUBDOMAINS value into a string array", () => {
     const env: Parameters<typeof getEnv>[0] = {
       STAGE: "dev",
       ALLOW_TWEET: "true",
       BUCKET_NAME: "test-bucket",
-      BLOCKED_SUBDOMAINS: "foo,bar",
+      BLOCKED_SUBDOMAINS: "foo",
     };
 
     const result = getEnv(env);
-    expect(result.BLOCKED_SUBDOMAINS).toEqual(["foo", "bar"]);
+    expect(result.BLOCKED_SUBDOMAINS).toEqual(["foo"]);
+  });
+
+  it("parses comma-separated BLOCKED_SUBDOMAINS into a string array", () => {
+    const env: Parameters<typeof getEnv>[0] = {
+      STAGE: "dev",
+      ALLOW_TWEET: "true",
+      BUCKET_NAME: "test-bucket",
+      BLOCKED_SUBDOMAINS: "foo,bar,baz",
+    };
+
+    const result = getEnv(env);
+    expect(result.BLOCKED_SUBDOMAINS).toEqual(["foo", "bar", "baz"]);
   });
 
   it("should default BLOCKED_SUBDOMAINS to empty array when not set", () => {
