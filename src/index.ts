@@ -31,22 +31,27 @@ export const handler: Handler = async (event, context) => {
     .filter((product) => !prevProductIdList.includes(product.id));
   console.debug("newProducts:", JSON.stringify(newProducts, null, 2));
 
-  // ブロックされたサブドメインの商品を除外
-  const filteredNewProducts = newProducts.filter(
-    (product) => !env.BLOCKED_SUBDOMAINS.includes(product.shopSubdomain),
-  );
-
   // 新しい商品が一つもない場合は早期終了
-  if (filteredNewProducts.length < 1) {
+  if (newProducts.length < 1) {
     return;
   }
 
-  // 今回の商品一覧で更新（そのまま保存してほしいのでフィルタリングされてない）
+  // 今回の商品一覧で更新
   await putScrapedData(
     env.BUCKET_NAME,
     startScrapedAt,
     productList.map(({ id }) => id),
   );
+
+  // ブロックサブドメインの商品をフィルタ
+  const filteredNewProducts = newProducts.filter(
+    (product) => !env.BLOCKED_SUBDOMAINS.includes(product.shopSubdomain),
+  );
+
+  // フィルタされて残った商品がない場合はツイート前に早期終了
+  if (filteredNewProducts.length < 1) {
+    return;
+  }
 
   // 時系列通りにツイートするため、公開日時の昇順にしたパラメータを作成
   const tweetParams = filteredNewProducts
