@@ -1,11 +1,69 @@
 import { ApiRequestError, ApiResponseError, TwitterApi } from "twitter-api-v2";
 
-import { createMultipleTweets, createTweet } from "./twitter";
+import { createMultipleTweets, createTweet, buildTweetText } from "./twitter";
 
 vi.mock("twitter-api-v2");
 
 afterEach(() => {
   vi.clearAllMocks();
+});
+
+describe("buildTweetText", () => {
+  it("タグありで正しく生成される", () => {
+    const result = buildTweetText({
+      productName: "商品名",
+      productId: 123,
+      shopName: "ショップ名",
+      hashtags: ["#tag1", "#tag2"],
+    });
+    expect(result).toBe(
+      "商品名\nショップ名\n#tag1 #tag2\nhttps://booth.pm/ja/items/123",
+    );
+  });
+
+  it("タグなしで正しく生成される", () => {
+    const result = buildTweetText({
+      productName: "商品名",
+      productId: 123,
+      shopName: "ショップ名",
+      hashtags: [],
+    });
+    expect(result).toBe("商品名\nショップ名\n\nhttps://booth.pm/ja/items/123");
+  });
+
+  it("タグが1つでも正しく生成される", () => {
+    const result = buildTweetText({
+      productName: "商品名",
+      productId: 123,
+      shopName: "ショップ名",
+      hashtags: ["#tag1"],
+    });
+    expect(result).toBe(
+      "商品名\nショップ名\n#tag1\nhttps://booth.pm/ja/items/123",
+    );
+  });
+
+  it("productIdが0でも正しく生成される", () => {
+    const result = buildTweetText({
+      productName: "商品名",
+      productId: 0,
+      shopName: "ショップ名",
+      hashtags: ["#tag1"],
+    });
+    expect(result).toBe(
+      "商品名\nショップ名\n#tag1\nhttps://booth.pm/ja/items/0",
+    );
+  });
+
+  it("productNameが空でも正しく生成される", () => {
+    const result = buildTweetText({
+      productName: "",
+      productId: 123,
+      shopName: "ショップ名",
+      hashtags: ["#tag1"],
+    });
+    expect(result).toBe("\nショップ名\n#tag1\nhttps://booth.pm/ja/items/123");
+  });
 });
 
 describe("createMultipleTweets", () => {
@@ -15,7 +73,10 @@ describe("createMultipleTweets", () => {
   it("create 1 tweet from createMultipleTweets", async () => {
     const postMockImpl = vi.fn().mockResolvedValueOnce({
       data: {
-        data: { id: "123", text: "Product\n#tag1 #tag2\nhttp://example.com" },
+        data: {
+          id: "123",
+          text: "Product\n#tag1 #tag2\nhttps://booth.pm/ja/items/1",
+        },
         errors: undefined,
       },
       rateLimit: { limit: 300, remaining: 299, reset: 1633024800 },
@@ -24,11 +85,7 @@ describe("createMultipleTweets", () => {
     twitterPostMock.mockImplementation(postMockImpl);
 
     const result = await createMultipleTweets(client, [
-      {
-        productName: "Product",
-        productId: 1,
-        hashtags: ["#tag1", "#tag2"],
-      },
+      "Product\n#tag1 #tag2\nhttps://booth.pm/ja/items/1",
     ]);
 
     expect(twitterPostMock).toHaveBeenCalledWith(
@@ -52,7 +109,7 @@ describe("createMultipleTweets", () => {
         data: {
           data: {
             id: "100001",
-            text: "Product1\n#tag1 #tag2\nhttp://example.com",
+            text: "Product1\n#tag1 #tag2\nhttps://booth.pm/ja/items/1",
           },
           errors: undefined,
         },
@@ -62,7 +119,7 @@ describe("createMultipleTweets", () => {
         data: {
           data: {
             id: "100002",
-            text: "Product1\n#tag1 #tag2\nhttp://example.com",
+            text: "Product2\n#tag3 #tag4\nhttps://booth.pm/ja/items/2",
           },
           errors: undefined,
         },
@@ -72,16 +129,8 @@ describe("createMultipleTweets", () => {
     twitterPostMock.mockImplementation(postMockImpl);
 
     const result = await createMultipleTweets(client, [
-      {
-        productName: "Product1",
-        productId: 1,
-        hashtags: ["#tag1", "#tag2"],
-      },
-      {
-        productName: "Product2",
-        productId: 2,
-        hashtags: ["#tag3", "#tag4"],
-      },
+      "Product1\n#tag1 #tag2\nhttps://booth.pm/ja/items/1",
+      "Product2\n#tag3 #tag4\nhttps://booth.pm/ja/items/2",
     ]);
 
     expect(twitterPostMock).toHaveBeenNthCalledWith(
@@ -117,7 +166,7 @@ describe("createMultipleTweets", () => {
         data: {
           data: {
             id: "100001",
-            text: "Product1\n#tag1 #tag2\nhttp://example.com",
+            text: "Product1\n#tag1 #tag2\nhttps://booth.pm/ja/items/1",
           },
         },
         rateLimit: { limit: 300, remaining: 299, reset: 1633024800 },
@@ -133,7 +182,7 @@ describe("createMultipleTweets", () => {
         data: {
           data: {
             id: "100003",
-            text: "Product3\n#tag1 #tag2\nhttp://example.com",
+            text: "Product3\n#tag3 #tag4\nhttps://booth.pm/ja/items/3",
           },
         },
         rateLimit: { limit: 300, remaining: 299, reset: 1633024800 },
@@ -142,21 +191,9 @@ describe("createMultipleTweets", () => {
     twitterPostMock.mockImplementation(postMockImpl);
 
     const result = await createMultipleTweets(client, [
-      {
-        productName: "Product1",
-        productId: 1,
-        hashtags: ["#tag1", "#tag2"],
-      },
-      {
-        productName: "Product2",
-        productId: 2,
-        hashtags: ["#tag3", "#tag4"],
-      },
-      {
-        productName: "Product3",
-        productId: 3,
-        hashtags: ["#tag3", "#tag4"],
-      },
+      "Product1\n#tag1 #tag2\nhttps://booth.pm/ja/items/1",
+      "Product2\n#tag3 #tag4\nhttps://booth.pm/ja/items/2",
+      "Product3\n#tag3 #tag4\nhttps://booth.pm/ja/items/3",
     ]);
 
     expect(twitterPostMock).toHaveBeenNthCalledWith(
@@ -211,15 +248,17 @@ describe("createTweet", () => {
 
     twitterPostMock.mockImplementation(postMockImpl);
 
-    const result = await createTweet(client, {
+    const tweetText = buildTweetText({
       productName: "Product",
       productId: 1,
+      shopName: "Shop",
       hashtags: ["#tag1", "#tag2"],
     });
+    const result = await createTweet(client, tweetText);
 
     expect(twitterPostMock).toHaveBeenCalledWith(
       "tweets",
-      { text: "Product\n#tag1 #tag2\nhttps://booth.pm/ja/items/1" },
+      { text: "Product\nShop\n#tag1 #tag2\nhttps://booth.pm/ja/items/1" },
       { fullResponse: true },
     );
     expect(result).toEqual({
@@ -239,15 +278,17 @@ describe("createTweet", () => {
 
     twitterPostMock.mockImplementation(postMockImpl);
 
-    const result = await createTweet(client, {
+    const tweetText = buildTweetText({
       productName: "Product",
       productId: 1,
+      shopName: "Shop",
       hashtags: [],
     });
+    const result = await createTweet(client, tweetText);
 
     expect(twitterPostMock).toHaveBeenCalledWith(
       "tweets",
-      { text: "Product\n\nhttps://booth.pm/ja/items/1" },
+      { text: "Product\nShop\n\nhttps://booth.pm/ja/items/1" },
       { fullResponse: true },
     );
     expect(result).toEqual({
@@ -264,11 +305,13 @@ describe("createTweet", () => {
 
     twitterPostMock.mockImplementation(postMockImpl);
 
-    const result = createTweet(client, {
+    const tweetText = buildTweetText({
       productName: "Product",
       productId: 1,
+      shopName: "Shop",
       hashtags: ["#tag1", "#tag2"],
     });
+    const result = createTweet(client, tweetText);
 
     await expect(result).rejects.toThrow(
       "An unknown error occurred while sending the tweet.",
@@ -276,7 +319,7 @@ describe("createTweet", () => {
 
     expect(twitterPostMock).toHaveBeenCalledWith(
       "tweets",
-      { text: "Product\n#tag1 #tag2\nhttps://booth.pm/ja/items/1" },
+      { text: "Product\nShop\n#tag1 #tag2\nhttps://booth.pm/ja/items/1" },
       { fullResponse: true },
     );
   });
@@ -291,11 +334,13 @@ describe("createTweet", () => {
 
     twitterPostMock.mockImplementation(postMockImpl);
 
-    const result = createTweet(client, {
+    const tweetText = buildTweetText({
       productName: "Product",
       productId: 1,
+      shopName: "Shop",
       hashtags: ["#tag1", "#tag2"],
     });
+    const result = createTweet(client, tweetText);
 
     await expect(result).rejects.toThrow(
       "Twitter API Request Error: Request Error",
@@ -303,7 +348,7 @@ describe("createTweet", () => {
 
     expect(twitterPostMock).toHaveBeenCalledWith(
       "tweets",
-      { text: "Product\n#tag1 #tag2\nhttps://booth.pm/ja/items/1" },
+      { text: "Product\nShop\n#tag1 #tag2\nhttps://booth.pm/ja/items/1" },
       { fullResponse: true },
     );
   });
@@ -319,17 +364,19 @@ describe("createTweet", () => {
 
     twitterPostMock.mockImplementation(postMockImpl);
 
-    const result = createTweet(client, {
+    const tweetText = buildTweetText({
       productName: "Product",
       productId: 1,
+      shopName: "Shop",
       hashtags: ["#tag1", "#tag2"],
     });
+    const result = createTweet(client, tweetText);
 
     await expect(result).rejects.toThrow("Twitter API Auth Error: Auth Error");
 
     expect(twitterPostMock).toHaveBeenCalledWith(
       "tweets",
-      { text: "Product\n#tag1 #tag2\nhttps://booth.pm/ja/items/1" },
+      { text: "Product\nShop\n#tag1 #tag2\nhttps://booth.pm/ja/items/1" },
       { fullResponse: true },
     );
   });
@@ -345,11 +392,13 @@ describe("createTweet", () => {
 
     twitterPostMock.mockImplementation(postMockImpl);
 
-    const result = createTweet(client, {
+    const tweetText = buildTweetText({
       productName: "Product",
       productId: 1,
+      shopName: "Shop",
       hashtags: ["#tag1", "#tag2"],
     });
+    const result = createTweet(client, tweetText);
 
     await expect(result).rejects.toThrow(
       "Twitter API Rate Limit Error: Rate Limit Error",
@@ -357,7 +406,7 @@ describe("createTweet", () => {
 
     expect(twitterPostMock).toHaveBeenCalledWith(
       "tweets",
-      { text: "Product\n#tag1 #tag2\nhttps://booth.pm/ja/items/1" },
+      { text: "Product\nShop\n#tag1 #tag2\nhttps://booth.pm/ja/items/1" },
       { fullResponse: true },
     );
   });
@@ -372,11 +421,13 @@ describe("createTweet", () => {
 
     twitterPostMock.mockImplementation(postMockImpl);
 
-    const result = createTweet(client, {
+    const tweetText = buildTweetText({
       productName: "Product",
       productId: 1,
+      shopName: "Shop",
       hashtags: ["#tag1", "#tag2"],
     });
+    const result = createTweet(client, tweetText);
 
     await expect(result).rejects.toThrow(
       "Twitter API Response Error: Response Error",
@@ -384,7 +435,7 @@ describe("createTweet", () => {
 
     expect(twitterPostMock).toHaveBeenCalledWith(
       "tweets",
-      { text: "Product\n#tag1 #tag2\nhttps://booth.pm/ja/items/1" },
+      { text: "Product\nShop\n#tag1 #tag2\nhttps://booth.pm/ja/items/1" },
       { fullResponse: true },
     );
   });

@@ -31,7 +31,7 @@ export const createTwitterClient = ({
 
 type CreateMultipleTweets = (
   client: TwitterApiReadWrite["v2"],
-  params: readonly Parameters<CreateTweet>[1][],
+  texts: readonly string[],
 ) => Promise<
   (
     | {
@@ -51,10 +51,10 @@ type CreateMultipleTweets = (
 >;
 export const createMultipleTweets: CreateMultipleTweets = async (
   client,
-  params,
+  texts,
 ) => {
   const tweetResultList = await Promise.allSettled(
-    params.map(async (param) => {
+    texts.map(async (param) => {
       const result = await createTweet(client, param);
       return result;
     }),
@@ -98,11 +98,7 @@ export const createMultipleTweets: CreateMultipleTweets = async (
 
 type CreateTweet = (
   client: TwitterApiReadWrite["v2"],
-  params: {
-    productName: string;
-    productId: number;
-    hashtags: `#${string}`[];
-  },
+  text: string,
 ) => Promise<{
   id: string;
   rateLimit:
@@ -114,11 +110,7 @@ type CreateTweet = (
       }
     | undefined;
 }>;
-export const createTweet: CreateTweet = async (
-  client,
-  { productName, productId, hashtags },
-) => {
-  const text = buildTweetText({ productName, productId, hashtags });
+export const createTweet: CreateTweet = async (client, text) => {
   const result = await sendTweet({ client, text });
   return { id: result.data.id, rateLimit: result.rateLimit };
 };
@@ -126,18 +118,28 @@ export const createTweet: CreateTweet = async (
 type BuildTweetText = (params: {
   productName: string;
   productId: number;
+  shopName: string;
   hashtags: `#${string}`[];
 }) => string;
-const buildTweetText: BuildTweetText = ({
+export const buildTweetText: BuildTweetText = ({
   productName,
   productId,
+  shopName,
   hashtags,
 }) => {
-  const productNameLine = productName;
-  const hashtagsLine = hashtags.join(" ");
-  const urlLine = buildProductUrl({ productId: productId });
+  const textLines: [
+    productName: string,
+    shopName: string,
+    hashtags: string,
+    url: string,
+  ] = [
+    productName,
+    shopName,
+    hashtags.join(" "),
+    buildProductUrl({ productId: productId }),
+  ];
 
-  return `${productNameLine}\n${hashtagsLine}\n${urlLine}` as const;
+  return `${textLines.join("\n")}` as const;
 };
 
 type SendTweet = (params: {

@@ -1,7 +1,11 @@
 import type { Handler } from "aws-lambda";
 
 import { scrapeProductList } from "./booth/products";
-import { createMultipleTweets, createTwitterClient } from "./twitter/twitter";
+import {
+  buildTweetText,
+  createMultipleTweets,
+  createTwitterClient,
+} from "./twitter/twitter";
 import { getScrapedData, putScrapedData, putLog } from "./db/s3";
 import { fetchTwitterCredentials } from "./param/ssmParam";
 import { truncateUnderMin } from "./util/truncateUnderMin";
@@ -39,11 +43,22 @@ export const handler: Handler = async (event, context) => {
     productList.map(({ id }) => id),
   );
 
+  // ブロックサブドメインの商品をフィルタ
+  const filteredNewProducts = newProducts.filter(
+    (product) => !env.BLOCKED_SUBDOMAINS.includes(product.shopSubdomain),
+  );
+
+  // フィルタされて残った商品がない場合はツイート前に早期終了
+  if (filteredNewProducts.length < 1) {
+    return;
+  }
+
   // 時系列通りにツイートするため、公開日時の昇順にしたパラメータを作成
-  const tweetParams = newProducts
+  const tweetParams = filteredNewProducts
     .map((product) => ({
       productName: product.name,
       productId: product.id,
+      shopName: product.shopName,
       hashtags: [],
       // hashtags: ["#Lapwing"], 試験運用中はタグなし
     }))
@@ -55,7 +70,7 @@ export const handler: Handler = async (event, context) => {
   await putLog(
     env.BUCKET_NAME,
     startScrapedAt,
-    newProducts.map((product, index) => ({
+    filteredNewProducts.map((product, index) => ({
       product_id: product.id,
       tweet_id: tweetIdList.at(index) ?? null,
     })),
@@ -68,6 +83,7 @@ const make_tweets = async (
   params: {
     productName: string;
     productId: number;
+    shopName: string;
     hashtags: `#${string}`[];
   }[],
 ) => {
@@ -82,7 +98,12 @@ const make_tweets = async (
     tokens: await fetchTwitterCredentials(env.STAGE),
   });
 
-  const tweetResultList = await createMultipleTweets(twitterClient, params);
+  const tweetTexts = params.map(
+    ({ productName, productId, shopName, hashtags }) =>
+      buildTweetText({ productName, productId, shopName, hashtags }),
+  );
+
+  const tweetResultList = await createMultipleTweets(twitterClient, tweetTexts);
   console.debug("tweetResults:", JSON.stringify(tweetResultList, null, 2));
 
   // 公開日時が降順の newProductIdList に併せて tweetIdList も降順にする
