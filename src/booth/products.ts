@@ -5,6 +5,8 @@ import { buildURLSearchParams } from "../util/buildSearchParams";
 const BROWSE_PRODUCTS_PATH = "https://booth.pm/ja/browse" as const;
 const SEARCH_PRODUCTS_PATH = "https://booth.pm/ja/search" as const;
 const PRODUCTS_PATH = "https://booth.pm/ja/items" as const;
+const productsUrlWithSubdomain = (subdomain: string) =>
+  `https://${subdomain}.booth.pm/items` as const;
 
 /** 必要になったら増やす */
 type SearchQueryParams = {
@@ -45,6 +47,21 @@ type BuildProductUrl = <TProductId extends number>(params: {
 }) => `${typeof PRODUCTS_PATH}/${TProductId}`;
 export const buildProductUrl: BuildProductUrl = ({ productId }) => {
   return `${PRODUCTS_PATH}/${productId}`;
+};
+
+type BuildProductWithSubdomainUrl = <
+  TSubdomain extends string,
+  TProductId extends number,
+>(params: {
+  subdomain: TSubdomain;
+  productId: TProductId;
+}) => `${ReturnType<typeof productsUrlWithSubdomain>}/${TProductId}`;
+export const buildProductWithSubdomainUrl: BuildProductWithSubdomainUrl = ({
+  subdomain,
+  productId,
+}) => {
+  const baseUrl = productsUrlWithSubdomain(subdomain);
+  return `${baseUrl}/${productId}`;
 };
 
 export const scrapeProductList = async () => {

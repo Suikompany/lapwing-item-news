@@ -58,6 +58,7 @@ export const handler: Handler = async (event, context) => {
     .map((product) => ({
       productName: product.name,
       productId: product.id,
+      shopSubdomain: product.shopSubdomain,
       shopName: product.shopName,
       hashtags: [],
       // hashtags: ["#Lapwing"], 試験運用中はタグなし
@@ -83,10 +84,23 @@ const make_tweets = async (
   params: {
     productName: string;
     productId: number;
+    shopSubdomain: string;
     shopName: string;
     hashtags: `#${string}`[];
   }[],
 ) => {
+  const tweetTexts = params.map(
+    ({ productName, productId, shopSubdomain, shopName, hashtags }) =>
+      buildTweetText({
+        productName: productName,
+        productId: productId,
+        shopSubdomain: shopSubdomain,
+        shopName: shopName,
+        hashtags: hashtags,
+      }),
+  );
+  console.debug("tweetTexts:", JSON.stringify(tweetTexts, null, 2));
+
   if (!env.ALLOW_TWEET) {
     console.info(
       "Skipping tweet creation due to the environment variable `ALLOW_TWEET`.",
@@ -97,11 +111,6 @@ const make_tweets = async (
   const twitterClient = createTwitterClient({
     tokens: await fetchTwitterCredentials(env.STAGE),
   });
-
-  const tweetTexts = params.map(
-    ({ productName, productId, shopName, hashtags }) =>
-      buildTweetText({ productName, productId, shopName, hashtags }),
-  );
 
   const tweetResultList = await createMultipleTweets(twitterClient, tweetTexts);
   console.debug("tweetResults:", JSON.stringify(tweetResultList, null, 2));
