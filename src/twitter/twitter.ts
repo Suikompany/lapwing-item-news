@@ -5,7 +5,7 @@ import type {
   TwitterApiReadWrite,
 } from "twitter-api-v2";
 
-import { buildProductUrl } from "../booth/products";
+import { buildProductWithSubdomainUrl } from "../booth/products";
 
 export const createTwitterClient = ({
   tokens,
@@ -118,12 +118,14 @@ export const createTweet: CreateTweet = async (client, text) => {
 type BuildTweetText = (params: {
   productName: string;
   productId: number;
+  shopSubdomain: string;
   shopName: string;
   hashtags: `#${string}`[];
 }) => string;
 export const buildTweetText: BuildTweetText = ({
   productName,
   productId,
+  shopSubdomain,
   shopName,
   hashtags,
 }) => {
@@ -136,7 +138,10 @@ export const buildTweetText: BuildTweetText = ({
     productName,
     shopName,
     hashtags.join(" "),
-    buildProductUrl({ productId: productId }),
+    buildProductWithSubdomainUrl({
+      subdomain: shopSubdomain,
+      productId: productId,
+    }),
   ];
 
   return `${textLines.join("\n")}` as const;

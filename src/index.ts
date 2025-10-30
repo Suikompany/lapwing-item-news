@@ -58,6 +58,7 @@ export const handler: Handler = async (event, context) => {
     .map((product) => ({
       productName: product.name,
       productId: product.id,
+      shopSubdomain: product.shopSubdomain,
       shopName: product.shopName,
       hashtags: [],
       // hashtags: ["#Lapwing"], 試験運用中はタグなし
@@ -83,6 +84,7 @@ const make_tweets = async (
   params: {
     productName: string;
     productId: number;
+    shopSubdomain: string;
     shopName: string;
     hashtags: `#${string}`[];
   }[],
@@ -99,8 +101,14 @@ const make_tweets = async (
   });
 
   const tweetTexts = params.map(
-    ({ productName, productId, shopName, hashtags }) =>
-      buildTweetText({ productName, productId, shopName, hashtags }),
+    ({ productName, productId, shopSubdomain, shopName, hashtags }) =>
+      buildTweetText({
+        productName: productName,
+        productId: productId,
+        shopSubdomain: shopSubdomain,
+        shopName: shopName,
+        hashtags: hashtags,
+      }),
   );
 
   const tweetResultList = await createMultipleTweets(twitterClient, tweetTexts);
