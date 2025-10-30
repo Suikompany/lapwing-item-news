@@ -89,17 +89,6 @@ const make_tweets = async (
     hashtags: `#${string}`[];
   }[],
 ) => {
-  if (!env.ALLOW_TWEET) {
-    console.info(
-      "Skipping tweet creation due to the environment variable `ALLOW_TWEET`.",
-    );
-    return [];
-  }
-
-  const twitterClient = createTwitterClient({
-    tokens: await fetchTwitterCredentials(env.STAGE),
-  });
-
   const tweetTexts = params.map(
     ({ productName, productId, shopSubdomain, shopName, hashtags }) =>
       buildTweetText({
@@ -110,6 +99,18 @@ const make_tweets = async (
         hashtags: hashtags,
       }),
   );
+  console.debug("tweetTexts:", JSON.stringify(tweetTexts, null, 2));
+
+  if (!env.ALLOW_TWEET) {
+    console.info(
+      "Skipping tweet creation due to the environment variable `ALLOW_TWEET`.",
+    );
+    return [];
+  }
+
+  const twitterClient = createTwitterClient({
+    tokens: await fetchTwitterCredentials(env.STAGE),
+  });
 
   const tweetResultList = await createMultipleTweets(twitterClient, tweetTexts);
   console.debug("tweetResults:", JSON.stringify(tweetResultList, null, 2));
