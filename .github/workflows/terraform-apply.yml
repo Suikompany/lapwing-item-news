@@ -71,6 +71,8 @@ jobs:
           run-id: ${{ inputs.run-id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: '~1.13.0'
       - id: init
         run: terraform -chdir=${{ env.tf-dir }} init
       - id: apply
