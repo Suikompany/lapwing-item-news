@@ -13,11 +13,13 @@ import { getEnv } from "./param/envParam";
 
 const env = getEnv(process.env);
 
+const BOOTH_TAGS = ["Lapwing"] as const;
+
 export const handler: Handler = async (event, context) => {
   const startScrapedAt = truncateUnderMin(new Date());
 
   // 今回の商品一覧（最新が1番目）を取得
-  const productList = await scrapeProductList();
+  const productList = await scrapeProductList(BOOTH_TAGS);
   console.debug("productList:", JSON.stringify(productList, null, 2));
 
   // 前回の商品一覧を取得
