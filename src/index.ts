@@ -13,7 +13,7 @@ import { getEnv } from "./param/envParam";
 
 const env = getEnv(process.env);
 
-const BOOTH_TAGS = ["Lapwing"] as const;
+const BOOTH_TAGS = ["Lapwing", "Lapwing対応"] as const;
 
 export const handler: Handler = async (event, context) => {
   const startScrapedAt = truncateUnderMin(new Date());
