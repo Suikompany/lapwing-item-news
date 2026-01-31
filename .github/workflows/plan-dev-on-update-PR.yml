@@ -10,6 +10,7 @@ on:
       - synchronize
     paths:
       - .github/workflows/plan-dev-on-update-PR.yml
+      - .github/workflows/terraform-plan.yml
       - '**.ts'
       - terraform/environment/dev/**
       - terraform/module/**
