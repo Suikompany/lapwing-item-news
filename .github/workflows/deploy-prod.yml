@@ -6,8 +6,10 @@ on:
       - main
     paths:
       - .github/workflows/deploy-prod.yml
+      - .github/workflows/terraform-plan.yml
+      - .github/workflows/terraform-apply.yml
       - '**.ts'
-      - terraform/environment/dev/**
+      - terraform/environment/prod/**
       - terraform/module/**
       - esbuild.mjs
       - package.json
