@@ -45,6 +45,8 @@ jobs:
           role-to-assume: ${{ secrets.DEPLOY_ROLE_ARN }}
           aws-region: 'ap-northeast-1'
       - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: '~1.13.0'
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
