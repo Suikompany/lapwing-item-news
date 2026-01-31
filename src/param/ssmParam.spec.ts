@@ -1,17 +1,9 @@
 import { fetchTwitterCredentials } from "./ssmParam";
+import { SSMProvider } from "@aws-lambda-powertools/parameters/ssm";
 
-const mocks = vi.hoisted(() => ({
-  get: vi.fn(),
-}));
-
-vi.mock("@aws-lambda-powertools/parameters/ssm", async (importOriginal) => ({
-  ...(await importOriginal<
-    typeof import("@aws-lambda-powertools/parameters/ssm")
-  >()),
-  SSMProvider: vi.fn().mockImplementation(() => ({
-    get: mocks.get,
-  })),
-}));
+const mocks = {
+  get: vi.spyOn(SSMProvider.prototype, "get"),
+};
 
 afterEach(() => {
   vi.clearAllMocks();
