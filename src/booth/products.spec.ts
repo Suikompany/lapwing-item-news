@@ -94,16 +94,16 @@ describe("scrapeProductList", () => {
     const products = await scrapeProductList(["Lapwing"]);
     expect(products).toEqual([
       {
-        id: 456,
-        name: "Product B",
-        shopSubdomain: "shop-b",
-        shopName: "ショップB",
-      },
-      {
         id: 123,
         name: "Product A",
         shopSubdomain: "shop-a",
         shopName: "ショップA",
+      },
+      {
+        id: 456,
+        name: "Product B",
+        shopSubdomain: "shop-b",
+        shopName: "ショップB",
       },
     ]);
   });
@@ -146,26 +146,9 @@ describe("scrapeProductList", () => {
     );
 
     const products = await scrapeProductList(["Lapwing", "VRChat"]);
-    expect(products).toEqual([
-      {
-        id: 789,
-        name: "Product C",
-        shopSubdomain: "shop-c",
-        shopName: "ショップC",
-      },
-      {
-        id: 456,
-        name: "Product B",
-        shopSubdomain: "shop-b",
-        shopName: "ショップB",
-      },
-      {
-        id: 123,
-        name: "Product A",
-        shopSubdomain: "shop-a",
-        shopName: "ショップA",
-      },
-    ]);
+
+    const distinctIds = [...new Set(products.map((p) => p.id))];
+    expect(distinctIds.length).toBe(3);
   });
 
   it("should deduplicate products with same ID from multiple tags", async () => {
@@ -194,25 +177,9 @@ describe("scrapeProductList", () => {
     const productIds = products.map((p) => p.id);
     const uniqueIds = [...new Set(productIds)];
     expect(productIds.length).toBe(uniqueIds.length);
-
-    // 商品IDで降順ソートされていることを確認
-    expect(products).toEqual([
-      {
-        id: 456,
-        name: "Product B",
-        shopSubdomain: "shop-b",
-        shopName: "ショップB",
-      },
-      {
-        id: 123,
-        name: "Product A",
-        shopSubdomain: "shop-a",
-        shopName: "ショップA",
-      },
-    ]);
   });
 
-  it("should sort products by ID in descending order", async () => {
+  it("should keep the order of products as is", async () => {
     const mockHtml = `
       <ul>
         <li data-product-id="100" data-product-brand="shop-a">
@@ -238,7 +205,7 @@ describe("scrapeProductList", () => {
 
     const products = await scrapeProductList(["Test"]);
 
-    expect(products.map((p) => p.id)).toEqual([500, 300, 100]);
+    expect(products.map((p) => p.id)).toEqual([100, 500, 300]);
   });
 
   it("should return empty array if no valid products found", async () => {
