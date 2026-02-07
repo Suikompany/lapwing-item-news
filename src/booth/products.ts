@@ -101,14 +101,14 @@ export const scrapeProductList = async (tags: readonly string[]) => {
     parseProductListHTML(text),
   );
 
-  // 重複排除及びソート
-  const sortedUniqueProductList = [
+  // 重複排除
+  const distinctProductList = [
     ...new Map(
       overlappingProductList.map((product) => [product.id, product]),
     ).values(),
-  ].sort((a, b) => b.id - a.id);
+  ];
 
-  return sortedUniqueProductList;
+  return distinctProductList;
 };
 
 // product_id は data-product-id 属性から取得できる。
