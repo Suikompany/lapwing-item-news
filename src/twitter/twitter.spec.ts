@@ -16,7 +16,7 @@ describe("buildTweetText", () => {
       hashtags: ["#tag1", "#tag2"],
     });
     expect(result).toBe(
-      "商品名\nショップ名\n#tag1 #tag2\nhttps://shopsub.booth.pm/items/123",
+      "商品名\nショップ名\n#tag1 #tag2\nshopsub.booth.pm/items/123",
     );
   });
 
@@ -29,7 +29,7 @@ describe("buildTweetText", () => {
       hashtags: [],
     });
     expect(result).toBe(
-      "商品名\nショップ名\n\nhttps://shopsub.booth.pm/items/123",
+      "商品名\nショップ名\n\nshopsub.booth.pm/items/123",
     );
   });
 
@@ -42,7 +42,7 @@ describe("buildTweetText", () => {
       hashtags: ["#tag1"],
     });
     expect(result).toBe(
-      "商品名\nショップ名\n#tag1\nhttps://shopsub.booth.pm/items/123",
+      "商品名\nショップ名\n#tag1\nshopsub.booth.pm/items/123",
     );
   });
 
@@ -55,7 +55,7 @@ describe("buildTweetText", () => {
       hashtags: ["#tag1"],
     });
     expect(result).toBe(
-      "商品名\nショップ名\n#tag1\nhttps://shopsub.booth.pm/items/0",
+      "商品名\nショップ名\n#tag1\nshopsub.booth.pm/items/0",
     );
   });
 
@@ -68,7 +68,7 @@ describe("buildTweetText", () => {
       hashtags: ["#tag1"],
     });
     expect(result).toBe(
-      "\nショップ名\n#tag1\nhttps://shopsub.booth.pm/items/123",
+      "\nショップ名\n#tag1\nshopsub.booth.pm/items/123",
     );
   });
 });
@@ -82,7 +82,7 @@ describe("createMultipleTweets", () => {
       data: {
         data: {
           id: "123",
-          text: "Product\n#tag1 #tag2\nhttps://booth.pm/ja/items/1",
+          text: "Product\n#tag1 #tag2\nshopsub.booth.pm/items/1",
         },
         errors: undefined,
       },
@@ -92,12 +92,12 @@ describe("createMultipleTweets", () => {
     twitterPostMock.mockImplementation(postMockImpl);
 
     const result = await createMultipleTweets(client, [
-      "Product\n#tag1 #tag2\nhttps://booth.pm/ja/items/1",
+      "Product\n#tag1 #tag2\nshopsub.booth.pm/items/1",
     ]);
 
     expect(twitterPostMock).toHaveBeenCalledWith(
       "tweets",
-      { text: "Product\n#tag1 #tag2\nhttps://booth.pm/ja/items/1" },
+      { text: "Product\n#tag1 #tag2\nshopsub.booth.pm/items/1" },
       { fullResponse: true },
     );
     expect(result).toEqual([
@@ -116,7 +116,7 @@ describe("createMultipleTweets", () => {
         data: {
           data: {
             id: "100001",
-            text: "Product1\n#tag1 #tag2\nhttps://booth.pm/ja/items/1",
+            text: "Product1\n#tag1 #tag2\nbooth.pm/ja/items/1",
           },
           errors: undefined,
         },
@@ -126,7 +126,7 @@ describe("createMultipleTweets", () => {
         data: {
           data: {
             id: "100002",
-            text: "Product2\n#tag3 #tag4\nhttps://booth.pm/ja/items/2",
+            text: "Product2\n#tag3 #tag4\nbooth.pm/ja/items/2",
           },
           errors: undefined,
         },
@@ -136,20 +136,20 @@ describe("createMultipleTweets", () => {
     twitterPostMock.mockImplementation(postMockImpl);
 
     const result = await createMultipleTweets(client, [
-      "Product1\n#tag1 #tag2\nhttps://booth.pm/ja/items/1",
-      "Product2\n#tag3 #tag4\nhttps://booth.pm/ja/items/2",
+      "Product1\n#tag1 #tag2\nbooth.pm/ja/items/1",
+      "Product2\n#tag3 #tag4\nbooth.pm/ja/items/2",
     ]);
 
     expect(twitterPostMock).toHaveBeenNthCalledWith(
       1,
       "tweets",
-      { text: "Product1\n#tag1 #tag2\nhttps://booth.pm/ja/items/1" },
+      { text: "Product1\n#tag1 #tag2\nbooth.pm/ja/items/1" },
       { fullResponse: true },
     );
     expect(twitterPostMock).toHaveBeenNthCalledWith(
       2,
       "tweets",
-      { text: "Product2\n#tag3 #tag4\nhttps://booth.pm/ja/items/2" },
+      { text: "Product2\n#tag3 #tag4\nbooth.pm/ja/items/2" },
       { fullResponse: true },
     );
     expect(result).toEqual([
@@ -173,7 +173,7 @@ describe("createMultipleTweets", () => {
         data: {
           data: {
             id: "100001",
-            text: "Product1\n#tag1 #tag2\nhttps://booth.pm/ja/items/1",
+            text: "Product1\n#tag1 #tag2\nbooth.pm/ja/items/1",
           },
         },
         rateLimit: { limit: 300, remaining: 299, reset: 1633024800 },
@@ -189,7 +189,7 @@ describe("createMultipleTweets", () => {
         data: {
           data: {
             id: "100003",
-            text: "Product3\n#tag3 #tag4\nhttps://booth.pm/ja/items/3",
+            text: "Product3\n#tag3 #tag4\nbooth.pm/ja/items/3",
           },
         },
         rateLimit: { limit: 300, remaining: 299, reset: 1633024800 },
@@ -198,27 +198,27 @@ describe("createMultipleTweets", () => {
     twitterPostMock.mockImplementation(postMockImpl);
 
     const result = await createMultipleTweets(client, [
-      "Product1\n#tag1 #tag2\nhttps://booth.pm/ja/items/1",
-      "Product2\n#tag3 #tag4\nhttps://booth.pm/ja/items/2",
-      "Product3\n#tag3 #tag4\nhttps://booth.pm/ja/items/3",
+      "Product1\n#tag1 #tag2\nbooth.pm/ja/items/1",
+      "Product2\n#tag3 #tag4\nbooth.pm/ja/items/2",
+      "Product3\n#tag3 #tag4\nbooth.pm/ja/items/3",
     ]);
 
     expect(twitterPostMock).toHaveBeenNthCalledWith(
       1,
       "tweets",
-      { text: "Product1\n#tag1 #tag2\nhttps://booth.pm/ja/items/1" },
+      { text: "Product1\n#tag1 #tag2\nbooth.pm/ja/items/1" },
       { fullResponse: true },
     );
     expect(twitterPostMock).toHaveBeenNthCalledWith(
       2,
       "tweets",
-      { text: "Product2\n#tag3 #tag4\nhttps://booth.pm/ja/items/2" },
+      { text: "Product2\n#tag3 #tag4\nbooth.pm/ja/items/2" },
       { fullResponse: true },
     );
     expect(twitterPostMock).toHaveBeenNthCalledWith(
       3,
       "tweets",
-      { text: "Product3\n#tag3 #tag4\nhttps://booth.pm/ja/items/3" },
+      { text: "Product3\n#tag3 #tag4\nbooth.pm/ja/items/3" },
       { fullResponse: true },
     );
     expect(result).toEqual([
@@ -266,7 +266,7 @@ describe("createTweet", () => {
 
     expect(twitterPostMock).toHaveBeenCalledWith(
       "tweets",
-      { text: "Product\nShop\n#tag1 #tag2\nhttps://shopsub.booth.pm/items/1" },
+      { text: "Product\nShop\n#tag1 #tag2\nshopsub.booth.pm/items/1" },
       { fullResponse: true },
     );
     expect(result).toEqual({
@@ -297,7 +297,7 @@ describe("createTweet", () => {
 
     expect(twitterPostMock).toHaveBeenCalledWith(
       "tweets",
-      { text: "Product\nShop\n\nhttps://shopsub.booth.pm/items/1" },
+      { text: "Product\nShop\n\nshopsub.booth.pm/items/1" },
       { fullResponse: true },
     );
     expect(result).toEqual({
@@ -329,7 +329,7 @@ describe("createTweet", () => {
 
     expect(twitterPostMock).toHaveBeenCalledWith(
       "tweets",
-      { text: "Product\nShop\n#tag1 #tag2\nhttps://shopsub.booth.pm/items/1" },
+      { text: "Product\nShop\n#tag1 #tag2\nshopsub.booth.pm/items/1" },
       { fullResponse: true },
     );
   });
@@ -359,7 +359,7 @@ describe("createTweet", () => {
 
     expect(twitterPostMock).toHaveBeenCalledWith(
       "tweets",
-      { text: "Product\nShop\n#tag1 #tag2\nhttps://shopsub.booth.pm/items/1" },
+      { text: "Product\nShop\n#tag1 #tag2\nshopsub.booth.pm/items/1" },
       { fullResponse: true },
     );
   });
@@ -388,7 +388,7 @@ describe("createTweet", () => {
 
     expect(twitterPostMock).toHaveBeenCalledWith(
       "tweets",
-      { text: "Product\nShop\n#tag1 #tag2\nhttps://shopsub.booth.pm/items/1" },
+      { text: "Product\nShop\n#tag1 #tag2\nshopsub.booth.pm/items/1" },
       { fullResponse: true },
     );
   });
@@ -419,7 +419,7 @@ describe("createTweet", () => {
 
     expect(twitterPostMock).toHaveBeenCalledWith(
       "tweets",
-      { text: "Product\nShop\n#tag1 #tag2\nhttps://shopsub.booth.pm/items/1" },
+      { text: "Product\nShop\n#tag1 #tag2\nshopsub.booth.pm/items/1" },
       { fullResponse: true },
     );
   });
@@ -449,7 +449,7 @@ describe("createTweet", () => {
 
     expect(twitterPostMock).toHaveBeenCalledWith(
       "tweets",
-      { text: "Product\nShop\n#tag1 #tag2\nhttps://shopsub.booth.pm/items/1" },
+      { text: "Product\nShop\n#tag1 #tag2\nshopsub.booth.pm/items/1" },
       { fullResponse: true },
     );
   });

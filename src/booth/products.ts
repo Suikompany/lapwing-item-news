@@ -6,7 +6,7 @@ const BROWSE_PRODUCTS_PATH = "https://booth.pm/ja/browse" as const;
 const SEARCH_PRODUCTS_PATH = "https://booth.pm/ja/search" as const;
 const PRODUCTS_PATH = "https://booth.pm/ja/items" as const;
 const productsUrlWithSubdomain = (subdomain: string) =>
-  `https://${subdomain}.booth.pm/items` as const;
+  `${subdomain}.booth.pm/items` as const;
 
 /** 必要になったら増やす */
 type SearchQueryParams = {

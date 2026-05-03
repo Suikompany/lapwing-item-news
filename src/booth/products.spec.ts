@@ -61,13 +61,13 @@ describe("buildProductWithSubdomainUrl", () => {
   it("builds correct product URL for shop-a/123", () => {
     expect(
       buildProductWithSubdomainUrl({ subdomain: "shop-a", productId: 123 }),
-    ).toBe("https://shop-a.booth.pm/items/123");
+    ).toBe("shop-a.booth.pm/items/123");
   });
 
   it("builds correct product URL for test/0", () => {
     expect(
       buildProductWithSubdomainUrl({ subdomain: "test", productId: 0 }),
-    ).toBe("https://test.booth.pm/items/0");
+    ).toBe("test.booth.pm/items/0");
   });
 });
 
