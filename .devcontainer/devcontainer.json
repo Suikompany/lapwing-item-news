@@ -17,7 +17,7 @@
 				"github.vscode-github-actions"
 			],
 			"settings": {
-				"typescript.tsdk": "node_modules/typescript/lib",
+				"js/ts.tsdk.path": "node_modules/typescript/lib",
 				"editor.defaultFormatter": "biomejs.biome"
 			}
 		}
@@ -25,12 +25,5 @@
 
 	"containerEnv": {
 		"TZ": "Asia/Tokyo"
-	},
-
-	"remoteEnv": {
-		"AWS_ACCESS_KEY_ID": "${localEnv:AWS_ACCESS_KEY_ID}",
-		"AWS_SECRET_ACCESS_KEY": "${localEnv:AWS_SECRET_ACCESS_KEY}",
-		"AWS_SESSION_TOKEN": "${localEnv:AWS_SESSION_TOKEN}",
-		"AWS_CREDENTIAL_EXPIRATION": "${localEnv:AWS_CREDENTIAL_EXPIRATION}"
 	}
 }
