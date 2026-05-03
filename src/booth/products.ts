@@ -11,8 +11,8 @@ const productsUrlWithSubdomain = (subdomain: string) =>
 /** 必要になったら増やす */
 type SearchQueryParams = {
   sort?: "new";
-  "except_words[]"?: string[];
-  "tags[]"?: string[];
+  "except_words[]"?: readonly string[];
+  "tags[]"?: readonly string[];
   page?: `${number}`;
 };
 
@@ -64,21 +64,51 @@ export const buildProductWithSubdomainUrl: BuildProductWithSubdomainUrl = ({
   return `${baseUrl}/${productId}`;
 };
 
-export const scrapeProductList = async () => {
-  const url = buildProductsUrl({
-    queryParams: {
-      "tags[]": ["Lapwing"],
-      sort: "new",
-      "except_words[]": ["3D環境・ワールド"],
-    },
-  });
-  const res = await fetch(url, {
-    method: "GET",
-  });
-  const body = await res.text();
+export const scrapeProductList = async (tags: readonly string[]) => {
+  const commonQueryParams = {
+    sort: "new",
+    "except_words[]": ["3D環境・ワールド"],
+  } as const;
 
-  const products = parseProductListHTML(body);
-  return products;
+  const urlList = tags.map((tag) =>
+    buildProductsUrl({
+      queryParams: {
+        ...commonQueryParams,
+        "tags[]": [tag],
+      },
+    }),
+  );
+
+  // 並列で検索実行
+  const responseList = await Promise.all(
+    urlList.map((url) => fetch(url, { method: "GET" })),
+  );
+
+  // レスポンスのステータスチェック
+  for (const response of responseList) {
+    if (!response.ok) {
+      throw new Error(
+        `BOOTH の検索に失敗しました: ${response.status} ${response.statusText} (${response.url})`,
+      );
+    }
+  }
+
+  const responseTextList = await Promise.all(
+    responseList.map((response) => response.text()),
+  );
+
+  const overlappingProductList = responseTextList.flatMap((text) =>
+    parseProductListHTML(text),
+  );
+
+  // 重複排除
+  const distinctProductList = [
+    ...new Map(
+      overlappingProductList.map((product) => [product.id, product]),
+    ).values(),
+  ];
+
+  return distinctProductList;
 };
 
 // product_id は data-product-id 属性から取得できる。

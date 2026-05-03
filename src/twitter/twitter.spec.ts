@@ -2,8 +2,6 @@ import { ApiRequestError, ApiResponseError, TwitterApi } from "twitter-api-v2";
 
 import { createMultipleTweets, createTweet, buildTweetText } from "./twitter";
 
-vi.mock("twitter-api-v2");
-
 afterEach(() => {
   vi.clearAllMocks();
 });
@@ -77,7 +75,7 @@ describe("buildTweetText", () => {
 
 describe("createMultipleTweets", () => {
   const client = new TwitterApi().readWrite.v2;
-  const twitterPostMock = vi.mocked(client.post);
+  const twitterPostMock = vi.spyOn(client, "post");
 
   it("create 1 tweet from createMultipleTweets", async () => {
     const postMockImpl = vi.fn().mockResolvedValueOnce({
@@ -244,7 +242,7 @@ describe("createMultipleTweets", () => {
 
 describe("createTweet", () => {
   const client = new TwitterApi().readWrite.v2;
-  const twitterPostMock = vi.mocked(client.post);
+  const twitterPostMock = vi.spyOn(client, "post");
 
   it("should create a tweet successfully", async () => {
     const postMockImpl = vi.fn().mockResolvedValueOnce({
